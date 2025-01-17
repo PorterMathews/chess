@@ -52,6 +52,35 @@ public class ChessPiece {
      * @return Collection of valid moves
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
-        return PieceMoveCalculator[ChessBoard, ChessPosition];
+        switch (this.PieceType) {
+            case KING:
+
+                break;
+
+            case QUEEN:
+
+                break;
+
+            case BISHOP:
+                pieceMoves = BishopMoveCalculator.pieceMove(ChessBoard board, ChessPosition myPosition);
+                break;
+
+            case KNIGHT:
+
+                break;
+
+            case ROOK:
+
+                break;
+
+            case PAWN:
+
+                break;
+
+            default:
+                System.out.println("Invalid piece type");
+                break;
+        }
+        return pieceMoves;
     }
 }
