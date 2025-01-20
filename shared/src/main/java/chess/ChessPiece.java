@@ -62,7 +62,7 @@ public class ChessPiece {
                 break;
 
             case BISHOP:
-                pieceMoves = BishopMoveCalculator.pieceMove(ChessBoard board, ChessPosition myPosition);
+                this.pieceMoves = BishopMoveCalculator.pieceMove(ChessBoard board, ChessPosition myPosition);
                 break;
 
             case KNIGHT:

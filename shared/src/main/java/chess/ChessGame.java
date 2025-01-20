@@ -29,7 +29,7 @@ public class ChessGame {
      */
     public void setTeamTurn(TeamColor team) {
 
-        throw new RuntimeException("Not implemented");
+                throw new RuntimeException("Not implemented");
     }
 
     /**
