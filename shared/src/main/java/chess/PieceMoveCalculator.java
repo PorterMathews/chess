@@ -15,38 +15,12 @@ class BishopMoveCalculator implements PieceMoveCalculator {
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         Collection<ChessMove> pieceMoves = new ArrayList<>();
         int[][] possibilities = {
-                {-7, -7},
-                {-6, -6},
-                {-5, -5},
-                {-4, -4},
-                {-3, -3},
-                {-2, -2},
-                {-1, -1},
-                {1, 1},
-                {2, 2},
-                {3, 3},
-                {4, 4},
-                {5, 5},
-                {6, 6},
-                {7, 7},
-                {-7, 7},
-                {-6, 6},
-                {-5, 5},
-                {-4, 4},
-                {-3, 3},
-                {-2, 2},
-                {-1, 1},
-                {1, -1},
-                {2, -2},
-                {3, -3},
-                {4, -4},
-                {5, -5},
-                {6, -6},
-                {7, -7}
+                {-7, -7}, {-6, -6}, {-5, -5}, {-4, -4}, {-3, -3}, {-2, -2}, {-1, -1},
+                {1, 1}, {2, 2}, {3, 3}, {4, 4}, {5, 5}, {6, 6}, {7, 7},
+                {-7, 7}, {-6, 6}, {-5, 5}, {-4, 4}, {-3, 3}, {-2, 2}, {-1, 1},
+                {1, -1}, {2, -2}, {3, -3}, {4, -4}, {5, -5}, {6, -6}, {7, -7}
         };
-        for (int[] possible: possibilities) {
-            if (possible)
-        }
+
         return pieceMoves;
     }
 
@@ -55,16 +29,21 @@ class BishopMoveCalculator implements PieceMoveCalculator {
 class KnightMoveCalculator implements PieceMoveCalculator {
 
     @Override
-    public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition position) {
+    public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         Collection<ChessMove> pieceMoves = new ArrayList<>();
         int[][] possibilities = {
-                {1, -2}, {2, -1}, {2, 1}, {1, 2},
-                {-1, 2}, {-2, 1}, {-2, -1}, {-1 ,-2}
+                {2, 1}, {1, 2}, {-1, 2}, {-2, 1}, {-2, -1}, {-1, -2}, {1, -2}, {2, -1}
         };
+        ChessPiece myPiece = board.getPiece(myPosition);
         for (int[] possible: possibilities) {
-            if (isValidMove(board, position, possible)){
-                pieceMoves.add(new ChessMove);
-            };
+            ChessPosition destination = new ChessPosition(
+                    myPosition.getRow() + possible[0],
+                    myPosition.getColumn() + possible[1]
+            );
+            ChessPiece targetPiece = board.getPiece(destination);
+            if (board.isValidMove(destination, myPiece, targetPiece)) {
+                pieceMoves.add(new ChessMove(myPosition, destination, null));
+            }
         };
         return pieceMoves;
     }

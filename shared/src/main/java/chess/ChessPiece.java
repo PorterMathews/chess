@@ -10,12 +10,12 @@ import java.util.Collection;
  */
 public class ChessPiece {
 
-    private ChessPiece.PieceType PieceType;
+    private final PieceType pieceType;
     private final ChessGame.TeamColor pieceColor;
 
-    public ChessPiece(ChessGame.TeamColor pieceColor, ChessPiece.PieceType type) {
+    public ChessPiece(ChessGame.TeamColor pieceColor, PieceType pieceType) {
         this.pieceColor = pieceColor;
-        this.PieceType = PieceType;
+        this.pieceType = pieceType;
     }
 
     /**
@@ -41,7 +41,7 @@ public class ChessPiece {
      * @return which type of chess piece this piece is
      */
     public PieceType getPieceType() {
-        return this.PieceType;
+        return this.pieceType;
     }
 
     /**
@@ -52,7 +52,7 @@ public class ChessPiece {
      * @return Collection of valid moves
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
-        switch (this.PieceType) {
+        switch (this.pieceType) {
             case KING:
 
                 break;
@@ -62,12 +62,12 @@ public class ChessPiece {
                 break;
 
             case BISHOP:
-                this.pieceMoves = BishopMoveCalculator.pieceMove(ChessBoard board, ChessPosition myPosition);
+
                 break;
 
             case KNIGHT:
-
-                break;
+                KnightMoveCalculator knightMoveCalculator = new KnightMoveCalculator();
+                return knightMoveCalculator.pieceMoves(board, myPosition);
 
             case ROOK:
 
@@ -81,6 +81,6 @@ public class ChessPiece {
                 System.out.println("Invalid piece type");
                 break;
         }
-        return pieceMoves;
+        return null;
     }
 }

@@ -1,5 +1,7 @@
 package chess;
 
+import java.util.Scanner;
+
 /**
  * Represents moving a chess piece on a chessboard
  * <p>
@@ -9,13 +11,13 @@ package chess;
 public class ChessMove {
     private final ChessPosition position;
     private final ChessPosition destination;
-    private ChessPiece piece;
+    private final ChessPiece.PieceType promotionPiece;
 
     public ChessMove(ChessPosition startPosition, ChessPosition endPosition,
                      ChessPiece.PieceType promotionPiece) {
         this.position = startPosition;
         this.destination = endPosition;
-        this.piece = null;
+        this.promotionPiece = promotionPiece;
     }
 
     /**
@@ -39,6 +41,6 @@ public class ChessMove {
      * @return Type of piece to promote a pawn to, or null if no promotion
      */
     public ChessPiece.PieceType getPromotionPiece() {
-        throw new RuntimeException("Not implemented");
+        return promotionPiece;
     }
 }
