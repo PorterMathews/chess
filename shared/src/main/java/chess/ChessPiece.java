@@ -13,11 +13,7 @@ public class ChessPiece {
 
     private final PieceType pieceType;
     private final ChessGame.TeamColor pieceColor;
-
-    public ChessPiece(ChessGame.TeamColor pieceColor, PieceType pieceType) {
-        this.pieceColor = pieceColor;
-        this.pieceType = pieceType;
-    }
+    private boolean hasNotMoved;
 
     @Override
     public boolean equals(Object o) {
@@ -25,13 +21,20 @@ public class ChessPiece {
             return false;
         }
         ChessPiece that = (ChessPiece) o;
-        return pieceType == that.pieceType && pieceColor == that.pieceColor;
+        return hasNotMoved == that.hasNotMoved && pieceType == that.pieceType && pieceColor == that.pieceColor;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(pieceType, pieceColor);
+        return Objects.hash(pieceType, pieceColor, hasNotMoved);
     }
+
+    public ChessPiece(ChessGame.TeamColor pieceColor, PieceType pieceType) {
+        this.pieceColor = pieceColor;
+        this.pieceType = pieceType;
+        this.hasNotMoved = true;
+    }
+
 
     /**
      * The various different chess piece options
@@ -51,6 +54,16 @@ public class ChessPiece {
     public ChessGame.TeamColor getTeamColor() {
         return this.pieceColor;
     }
+
+    public boolean getHasNotMoved() {
+        return hasNotMoved;
+    }
+
+    public void setHasNotMoved() {
+        this.hasNotMoved = false;
+    }
+
+
 
     /**
      * @return which type of chess piece this piece is
@@ -89,8 +102,8 @@ public class ChessPiece {
                 return rookMoveCalculator.pieceMoves(board, myPosition);
 
             case PAWN:
-
-                break;
+                PawnMoveCalculator pawnMoveCalculator = new PawnMoveCalculator();
+                return pawnMoveCalculator.pieceMoves(board, myPosition);
 
             default:
                 System.out.println("Invalid piece type");

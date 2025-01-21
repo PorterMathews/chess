@@ -110,6 +110,35 @@ class PawnMoveCalculator implements PieceMoveCalculator {
     @Override
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         Collection<ChessMove> pieceMoves = new ArrayList<>();
+        ChessPiece myPiece = board.getPiece(myPosition);
+        int mult = 1;
+        if (myPiece.getTeamColor() == ChessGame.TeamColor.BLACK) {
+            mult = -1;
+        }
+
+        ChessPosition march = new ChessPosition(myPosition.getRow() +mult, myPosition.getColumn());
+        if (board.getPiece(march) == null) {
+            if (march.getRow() == 8 || march.getRow() == 1) {
+                for (ChessPiece.PieceType promotionPiece : new ChessPiece.PieceType[]{
+                        ChessPiece.PieceType.QUEEN,
+                        ChessPiece.PieceType.ROOK,
+                        ChessPiece.PieceType.BISHOP,
+                        ChessPiece.PieceType.KNIGHT}) {
+                    pieceMoves.add(new ChessMove(myPosition, march, promotionPiece));
+                }
+            } else {
+                pieceMoves.add(new ChessMove(myPosition, march, null));
+            }
+            ChessPosition fastMarch = new ChessPosition(myPosition.getRow() +2 * mult, myPosition.getColumn());
+            if (((myPosition.getRow() == 2 && myPiece.getTeamColor() == ChessGame.TeamColor.WHITE) ||
+                    (myPosition.getRow() == 7 && myPiece.getTeamColor() == ChessGame.TeamColor.BLACK)) &&
+                    board.getPiece(fastMarch) == null) {
+                pieceMoves.add(new ChessMove(myPosition, fastMarch, null));
+            }
+        }
+        pieceMoves.addAll(MovementHelper.pawnAttackMoves(board, myPosition));
+
+
 
         return pieceMoves;
     }

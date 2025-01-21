@@ -24,7 +24,7 @@ public class MovementHelper {
 
             ChessPosition possiblePosition = new ChessPosition(possibleRow, possibleCol);
 
-            if(!board.isInBounds(possiblePosition)) {
+            if (!board.isInBounds(possiblePosition)) {
                 break;
             }
 
@@ -48,7 +48,7 @@ public class MovementHelper {
 
             ChessPosition possiblePosition = new ChessPosition(possibleRow, possibleCol);
 
-            if(!board.isInBounds(possiblePosition)) {
+            if (!board.isInBounds(possiblePosition)) {
                 break;
             }
 
@@ -72,7 +72,7 @@ public class MovementHelper {
 
             ChessPosition possiblePosition = new ChessPosition(possibleRow, possibleCol);
 
-            if(!board.isInBounds(possiblePosition)) {
+            if (!board.isInBounds(possiblePosition)) {
                 break;
             }
 
@@ -96,7 +96,7 @@ public class MovementHelper {
 
             ChessPosition possiblePosition = new ChessPosition(possibleRow, possibleCol);
 
-            if(!board.isInBounds(possiblePosition)) {
+            if (!board.isInBounds(possiblePosition)) {
                 break;
             }
 
@@ -129,7 +129,7 @@ public class MovementHelper {
 
             ChessPosition possiblePosition = new ChessPosition(possibleRow, thisCol);
 
-            if(!board.isInBounds(possiblePosition)) {
+            if (!board.isInBounds(possiblePosition)) {
                 break;
             }
 
@@ -152,7 +152,7 @@ public class MovementHelper {
 
             ChessPosition possiblePosition = new ChessPosition(possibleRow, thisCol);
 
-            if(!board.isInBounds(possiblePosition)) {
+            if (!board.isInBounds(possiblePosition)) {
                 break;
             }
 
@@ -175,7 +175,7 @@ public class MovementHelper {
 
             ChessPosition possiblePosition = new ChessPosition(thisRow, possibleCol);
 
-            if(!board.isInBounds(possiblePosition)) {
+            if (!board.isInBounds(possiblePosition)) {
                 break;
             }
 
@@ -198,7 +198,7 @@ public class MovementHelper {
 
             ChessPosition possiblePosition = new ChessPosition(thisRow, possibleCol);
 
-            if(!board.isInBounds(possiblePosition)) {
+            if (!board.isInBounds(possiblePosition)) {
                 break;
             }
 
@@ -215,6 +215,51 @@ public class MovementHelper {
         }
 
 
+        return pieceMoves;
+    }
+
+    public static Collection<ChessMove> pawnAttackMoves(ChessBoard board, ChessPosition myPosition) {
+        Collection<ChessMove> pieceMoves = new ArrayList<>();
+        ChessPiece myPiece = board.getPiece(myPosition);
+        int mult = 1;
+        if (myPiece.getTeamColor() == ChessGame.TeamColor.BLACK) {
+            mult = -1;
+        }
+        ChessPosition leftAttack = new ChessPosition(myPosition.getRow() + mult, myPosition.getColumn() - 1);
+        ChessPosition rightAttack = new ChessPosition(myPosition.getRow() + mult, myPosition.getColumn() + 1);
+
+
+        if (board.isInBounds(leftAttack) && board.getPiece(leftAttack) != null) {
+            if (!board.canCapture(myPiece, board.getPiece(leftAttack))) {
+                if (leftAttack.getRow() == 8 || leftAttack.getRow() == 1) {
+                    for (ChessPiece.PieceType promotionPiece : new ChessPiece.PieceType[]{
+                            ChessPiece.PieceType.QUEEN,
+                            ChessPiece.PieceType.ROOK,
+                            ChessPiece.PieceType.BISHOP,
+                            ChessPiece.PieceType.KNIGHT}) {
+                        pieceMoves.add(new ChessMove(myPosition, leftAttack, promotionPiece));
+                    }
+                } else {
+                    pieceMoves.add(new ChessMove(myPosition, leftAttack, null));
+                }
+            }
+        }
+        if (board.isInBounds(rightAttack) && board.getPiece(rightAttack) != null) {
+            if (!board.canCapture(myPiece, board.getPiece(rightAttack))) {
+                if (rightAttack.getRow() == 8 || rightAttack.getRow() == 1) {
+                    for (ChessPiece.PieceType promotionPiece : new ChessPiece.PieceType[]{
+                            ChessPiece.PieceType.QUEEN,
+                            ChessPiece.PieceType.ROOK,
+                            ChessPiece.PieceType.BISHOP,
+                            ChessPiece.PieceType.KNIGHT}) {
+                        pieceMoves.add(new ChessMove(myPosition, rightAttack, promotionPiece));
+                    }
+                } else {
+                    pieceMoves.add(new ChessMove(myPosition, rightAttack, null));
+                }
+            }
+
+        }
         return pieceMoves;
     }
 }
