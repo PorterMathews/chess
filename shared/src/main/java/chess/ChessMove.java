@@ -1,7 +1,6 @@
 package chess;
 
 import java.util.Objects;
-import java.util.Scanner;
 
 /**
  * Represents moving a chess piece on a chessboard
@@ -10,14 +9,15 @@ import java.util.Scanner;
  * signature of the existing methods.
  */
 public class ChessMove {
-    private final ChessPosition position;
-    private final ChessPosition destination;
+
+    private final ChessPosition startPosition;
+    private  final ChessPosition endPosition ;
     private final ChessPiece.PieceType promotionPiece;
 
     public ChessMove(ChessPosition startPosition, ChessPosition endPosition,
                      ChessPiece.PieceType promotionPiece) {
-        this.position = startPosition;
-        this.destination = endPosition;
+        this.startPosition = startPosition;
+        this.endPosition = endPosition;
         this.promotionPiece = promotionPiece;
     }
 
@@ -27,26 +27,26 @@ public class ChessMove {
             return false;
         }
         ChessMove chessMove = (ChessMove) o;
-        return Objects.equals(position, chessMove.position) && Objects.equals(destination, chessMove.destination) && promotionPiece == chessMove.promotionPiece;
+        return Objects.equals(startPosition, chessMove.startPosition) && Objects.equals(endPosition, chessMove.endPosition) && promotionPiece == chessMove.promotionPiece;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(position, destination, promotionPiece);
+        return Objects.hash(startPosition, endPosition, promotionPiece);
     }
 
     /**
      * @return ChessPosition of starting location
      */
     public ChessPosition getStartPosition() {
-        return this.position;
+        return startPosition;
     }
 
     /**
      * @return ChessPosition of ending location
      */
     public ChessPosition getEndPosition() {
-        return this.destination;
+        return endPosition;
     }
 
     /**

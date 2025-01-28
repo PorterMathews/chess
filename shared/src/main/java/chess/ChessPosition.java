@@ -9,7 +9,6 @@ import java.util.Objects;
  * signature of the existing methods.
  */
 public class ChessPosition {
-
     private final int row;
     private final int col;
 
@@ -47,6 +46,4 @@ public class ChessPosition {
     public int getColumn() {
         return col;
     }
-
-
 }

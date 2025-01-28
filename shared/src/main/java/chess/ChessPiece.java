@@ -1,5 +1,6 @@
 package chess;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Objects;
 
@@ -10,10 +11,13 @@ import java.util.Objects;
  * signature of the existing methods.
  */
 public class ChessPiece {
-
-    private final PieceType pieceType;
     private final ChessGame.TeamColor pieceColor;
-    private boolean hasNotMoved;
+    private final ChessPiece.PieceType type;
+
+    public ChessPiece(ChessGame.TeamColor pieceColor, ChessPiece.PieceType type) {
+        this.pieceColor = pieceColor;
+        this.type = type;
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -21,20 +25,13 @@ public class ChessPiece {
             return false;
         }
         ChessPiece that = (ChessPiece) o;
-        return hasNotMoved == that.hasNotMoved && pieceType == that.pieceType && pieceColor == that.pieceColor;
+        return pieceColor == that.pieceColor && type == that.type;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(pieceType, pieceColor, hasNotMoved);
+        return Objects.hash(pieceColor, type);
     }
-
-    public ChessPiece(ChessGame.TeamColor pieceColor, PieceType pieceType) {
-        this.pieceColor = pieceColor;
-        this.pieceType = pieceType;
-        this.hasNotMoved = true;
-    }
-
 
     /**
      * The various different chess piece options
@@ -52,24 +49,14 @@ public class ChessPiece {
      * @return Which team this chess piece belongs to
      */
     public ChessGame.TeamColor getTeamColor() {
-        return this.pieceColor;
+        return pieceColor;
     }
-
-    public boolean getHasNotMoved() {
-        return hasNotMoved;
-    }
-
-    public void setHasNotMoved() {
-        this.hasNotMoved = false;
-    }
-
-
 
     /**
      * @return which type of chess piece this piece is
      */
     public PieceType getPieceType() {
-        return this.pieceType;
+        return type;
     }
 
     /**
@@ -80,35 +67,35 @@ public class ChessPiece {
      * @return Collection of valid moves
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
-        switch (this.pieceType) {
+        Collection<ChessMove> pieceMoves = new ArrayList<>();
+
+        switch(type) {
             case KING:
-                KingMoveCalculator kingMoveCalculator = new KingMoveCalculator();
-                return kingMoveCalculator.pieceMoves(board, myPosition);
+                KingMovesCalc kingMovesCalc = new KingMovesCalc(board, myPosition);
+                return kingMovesCalc.pieceMoves(board, myPosition);
 
             case QUEEN:
-                QueenMoveCalculator queenMoveCalculator = new QueenMoveCalculator(board, myPosition);
-                return queenMoveCalculator.pieceMoves(board, myPosition);
-
-            case BISHOP:
-                BishopMoveCalculator bishopMoveCalculator = new BishopMoveCalculator(board, myPosition);
-                return bishopMoveCalculator.pieceMoves(board, myPosition);
-
-            case KNIGHT:
-                KnightMoveCalculator knightMoveCalculator = new KnightMoveCalculator();
-                return knightMoveCalculator.pieceMoves(board, myPosition);
+                QueenMoveCalc queenMoveCalc = new QueenMoveCalc(board, myPosition);
+                return queenMoveCalc.pieceMoves(board, myPosition);
 
             case ROOK:
-                RookMoveCalculator rookMoveCalculator = new RookMoveCalculator(board, myPosition);
-                return rookMoveCalculator.pieceMoves(board, myPosition);
+                RookMoveCalc rookMoveCalc = new RookMoveCalc(board, myPosition);
+                return rookMoveCalc.pieceMoves(board, myPosition);
+
+            case KNIGHT:
+                KnightMovesCalc knightMovesCalc = new KnightMovesCalc(board, myPosition);
+                return knightMovesCalc.pieceMoves(board, myPosition);
+
+            case BISHOP:
+                BishopMoveCalc bishopMoveCalc = new BishopMoveCalc(board, myPosition);
+                return bishopMoveCalc.pieceMoves(board, myPosition);
 
             case PAWN:
-                PawnMoveCalculator pawnMoveCalculator = new PawnMoveCalculator();
-                return pawnMoveCalculator.pieceMoves(board, myPosition);
+                PawnMoveCalc pawnMoveCalc = new PawnMoveCalc(board, myPosition);
+                return pawnMoveCalc.pieceMoves(board, myPosition);
 
             default:
-                System.out.println("Invalid piece type");
-                break;
+                throw new RuntimeException("Not a valid Piece");
         }
-        return null;
     }
 }
