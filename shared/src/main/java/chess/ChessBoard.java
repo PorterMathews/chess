@@ -10,10 +10,10 @@ import java.util.Objects;
  * signature of the existing methods.
  */
 public class ChessBoard {
-    private final ChessPiece[][] chessBoard = new ChessPiece[9][9];
+    private final ChessPiece[][] chessBoard;
 
     public ChessBoard() {
-
+        this.chessBoard = new ChessPiece[9][9];
     }
 
     @Override
