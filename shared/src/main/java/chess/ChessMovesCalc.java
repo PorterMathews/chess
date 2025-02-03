@@ -84,7 +84,7 @@ class RookMoveCalc extends ChessMoveHelper implements ChessMovesCalc {
     @Override
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         Collection<ChessMove> pieceMoves = new ArrayList<>();
-        pieceMoves.addAll(StraightMoveCalc(board, myPosition));
+        pieceMoves.addAll(straightMoveCalc(board, myPosition));
         return pieceMoves;
     }
 }
@@ -98,7 +98,7 @@ class QueenMoveCalc extends ChessMoveHelper implements ChessMovesCalc {
     @Override
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         Collection<ChessMove> pieceMoves = new ArrayList<>();
-        pieceMoves.addAll(StraightMoveCalc(board, myPosition));
+        pieceMoves.addAll(straightMoveCalc(board, myPosition));
         pieceMoves.addAll(diagonalMoveCalc(board, myPosition));
         return pieceMoves;
     }
@@ -113,7 +113,7 @@ class PawnMoveCalc extends ChessMoveHelper implements ChessMovesCalc {
     @Override
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         Collection<ChessMove> pieceMoves = new ArrayList<>();
-        pieceMoves.addAll(PawnMoveCalc(board, myPosition));
+        pieceMoves.addAll(pawnMoveCalc(board, myPosition));
         return pieceMoves;
     }
 }

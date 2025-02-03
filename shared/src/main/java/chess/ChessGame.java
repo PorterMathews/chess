@@ -206,10 +206,10 @@ public class ChessGame {
                     if (piece == null) {
                         continue;
                     } else if (piece.getTeamColor() == teamColor) {
-                        Collection<ChessMove> Moves = validMoves(position);
-                        if (Moves == null) {
+                        Collection<ChessMove> moves = validMoves(position);
+                        if (moves == null) {
                             continue;
-                        }  else if (!Moves.isEmpty()){
+                        }  else if (!moves.isEmpty()){
                             return false;
                         }
                     }
@@ -236,10 +236,10 @@ public class ChessGame {
                     if (piece == null) {
                         continue;
                     } else if (piece.getTeamColor() == teamColor) {
-                        Collection<ChessMove> Moves = validMoves(position);
-                        if (Moves == null) {
+                        Collection<ChessMove> moves = validMoves(position);
+                        if (moves == null) {
                             continue;
-                        }  else if (!Moves.isEmpty()){
+                        }  else if (!moves.isEmpty()){
                             return false;
                         }
                     }

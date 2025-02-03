@@ -39,7 +39,7 @@ public class ChessMoveHelper {
         return pieceMoves;
     }
 
-    public Collection<ChessMove> StraightMoveCalc(ChessBoard board, ChessPosition myPosition) {
+    public Collection<ChessMove> straightMoveCalc(ChessBoard board, ChessPosition myPosition) {
         Collection<ChessMove> pieceMoves = new ArrayList<>();
         ChessPiece myPiece = board.getPiece(myPosition);
 
@@ -69,7 +69,7 @@ public class ChessMoveHelper {
         return pieceMoves;
     }
 
-    public Collection<ChessMove> PawnMoveCalc(ChessBoard board, ChessPosition myPosition) {
+    public Collection<ChessMove> pawnMoveCalc(ChessBoard board, ChessPosition myPosition) {
         Collection<ChessMove> pieceMoves = new ArrayList<>();
         ChessPiece myPiece = board.getPiece(myPosition);
         int colorMult = 1;
