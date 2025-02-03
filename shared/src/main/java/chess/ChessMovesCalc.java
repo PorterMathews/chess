@@ -7,57 +7,38 @@ public interface ChessMovesCalc {
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition);
 }
 
-class KnightMovesCalc implements ChessMovesCalc {
+class KnightMovesCalc extends ChessMoveHelper implements ChessMovesCalc {
 
     KnightMovesCalc(ChessBoard board, ChessPosition myPosition) {
-
+        super(board,myPosition);
     }
 
     @Override
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
-        ChessPiece myPiece = board.getPiece(myPosition);
-        Collection<ChessMove> pieceMoves = new ArrayList<>();
 
         int[][] possibilities = {
                 {2, 1}, {1, 2}, {-1, 2}, {-2, 1}, {-2, -1}, {-1, -2}, {1, -2}, {2, -1}
         };
 
-        for (int[] possible : possibilities) {
-            int row = possible[0] + myPosition.getRow();
-            int col = possible[1] + myPosition.getColumn();
-            ChessPosition possiblePosition = new ChessPosition(row, col);
-            if(board.isValidMove(possiblePosition, myPiece)) {
-                pieceMoves.add(new ChessMove(myPosition, possiblePosition, null));
-            }
-        }
-        return pieceMoves;
+        return hopMoveCalc(board, myPosition, possibilities);
+
     }
 }
 
-class KingMovesCalc implements ChessMovesCalc {
+class KingMovesCalc extends ChessMoveHelper implements ChessMovesCalc {
 
     public KingMovesCalc(ChessBoard board, ChessPosition myPosition) {
-
+        super(board,myPosition);
     }
 
     @Override
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
-        ChessPiece myPiece = board.getPiece(myPosition);
-        Collection<ChessMove> pieceMoves = new ArrayList<>();
 
         int[][] possibilities = {
                 {1, 0}, {1, 1}, {0, 1}, {-1, 1}, {-1, 0}, {-1, -1}, {0, -1}, {1, -1}
         };
 
-        for (int[] possible : possibilities) {
-            int row = possible[0] + myPosition.getRow();
-            int col = possible[1] + myPosition.getColumn();
-            ChessPosition possiblePosition = new ChessPosition(row, col);
-            if(board.isValidMove(possiblePosition, myPiece)) {
-                pieceMoves.add(new ChessMove(myPosition, possiblePosition, null));
-            }
-        }
-        return pieceMoves;
+        return hopMoveCalc(board, myPosition, possibilities);
     }
 }
 

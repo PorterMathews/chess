@@ -7,6 +7,24 @@ public class ChessMoveHelper {
 
     public  ChessMoveHelper(ChessBoard board, ChessPosition myPosition) {
 
+
+
+    }
+
+    public Collection<ChessMove> hopMoveCalc (ChessBoard board, ChessPosition myPosition,int[][] possibilities) {
+        Collection<ChessMove> pieceMoves = new ArrayList<>();
+        ChessPiece myPiece = board.getPiece(myPosition);
+
+        for (int[] possible : possibilities) {
+            int row = possible[0] + myPosition.getRow();
+            int col = possible[1] + myPosition.getColumn();
+            ChessPosition possiblePosition = new ChessPosition(row, col);
+            if(board.isValidMove(possiblePosition, myPiece)) {
+                pieceMoves.add(new ChessMove(myPosition, possiblePosition, null));
+            }
+        }
+        return pieceMoves;
+
     }
 
     public Collection<ChessMove> moveCalc (ChessBoard board, ChessPosition myPosition,int[][] directions) {
