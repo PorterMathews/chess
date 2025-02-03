@@ -144,6 +144,29 @@ public class ChessGame {
     }
 
     /**
+     *
+     * @param threateningPiece The piece in the position that is being tested
+     * @param position The position of the threatening position
+     * @param kingPosition The position of the opposing King
+     * @param teamColor The Color of the opposing King, threateningPiece must be this color
+     * @return true if the threatening piece can attack the king
+     */
+    public boolean isKingThreatened (ChessPiece threateningPiece, ChessPosition position, ChessPosition kingPosition, TeamColor teamColor) {
+        if (threateningPiece == null) {
+            return false;
+        } else if (threateningPiece.getTeamColor() != teamColor) {
+            Collection<ChessMove> moves = threateningPiece.pieceMoves(chessBoard, position);
+            for (ChessMove move : moves) {
+                if (move.getEndPosition().equals(kingPosition)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+
+    /**
      * Determines if the given team is in check
      *
      * @param teamColor which team to check for check
@@ -175,17 +198,10 @@ public class ChessGame {
             for (int row = 1; row <= 8; row++) {
                 ChessPosition position = new ChessPosition(row, col);
                 ChessPiece piece = chessBoard.getPiece(position);
-
-                if (piece == null) {
-                    continue;
-                } else if (piece.getTeamColor() != teamColor) {
-                    Collection<ChessMove> moves = piece.pieceMoves(chessBoard, position);
-                   for (ChessMove move : moves) {
-                       if (move.getEndPosition().equals(kingPosition)) {
-                           return true;
-                       }
-                   }
+                if (isKingThreatened(piece, position, kingPosition, teamColor)) {
+                    return true;
                 }
+
             }
         }
         return false;
