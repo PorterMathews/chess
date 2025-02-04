@@ -13,10 +13,12 @@ import java.util.Objects;
 public class ChessPiece {
     private final ChessGame.TeamColor pieceColor;
     private final ChessPiece.PieceType type;
+    private boolean hasNotMoved;
 
     public ChessPiece(ChessGame.TeamColor pieceColor, ChessPiece.PieceType type) {
         this.pieceColor = pieceColor;
         this.type = type;
+        this.hasNotMoved = true;
     }
 
     @Override
@@ -43,6 +45,14 @@ public class ChessPiece {
         KNIGHT,
         ROOK,
         PAWN
+    }
+
+    public boolean getHasNotMoved() {
+        return hasNotMoved;
+    }
+
+    public void setNotHasMoved() {
+        hasNotMoved = false;
     }
 
     /**
