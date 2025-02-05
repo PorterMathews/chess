@@ -16,11 +16,15 @@ public class ChessGame {
 
     private TeamColor teamTurn;
     private ChessBoard chessBoard;
+    private boolean canUnPassant;
+    private int unPassantCol;
 
     public ChessGame() {
         teamTurn = TeamColor.WHITE;
         chessBoard = new ChessBoard();
         chessBoard.resetBoard();
+        canUnPassant = false;
+        unPassantCol = 0;
     }
 
     @Override
@@ -35,6 +39,22 @@ public class ChessGame {
     @Override
     public int hashCode() {
         return Objects.hash(teamTurn, chessBoard);
+    }
+
+    public void setCanUnPassant(boolean canUnPassant) {
+        this.canUnPassant = canUnPassant;
+    }
+
+    public boolean getCanUnPassant() {
+        return this.canUnPassant;
+    }
+
+    public void setUnPassantCol(int unPassantCol) {
+        this.unPassantCol = unPassantCol;
+    }
+
+    public int getUnPassantCol() {
+        return unPassantCol;
     }
 
     /**
@@ -95,9 +115,45 @@ public class ChessGame {
             validMoves.addAll(checkCastling(myTeamColor, startPosition));
         }
 
+        if (getCanUnPassant() && myPiece.getPieceType() == PieceType.PAWN) {
+            validMoves.addAll(unPassantAttacks(myTeamColor, startPosition));
+        }
+
         return validMoves;
     }
 
+    public Collection<ChessMove> unPassantAttacks(TeamColor myTeamColor, ChessPosition myPosition) {
+        Collection<ChessMove> unPassantAttacks = new ArrayList<>();
+
+        int row = 5;
+        int direction = 1;
+        if (myTeamColor == TeamColor.BLACK) {
+            row = 4;
+            direction = -1;
+        }
+        ChessPosition leftPosition = new ChessPosition(row, unPassantCol -1);
+        ChessPosition rightPosition = new ChessPosition(row, unPassantCol +1);
+
+        if (!(myPosition.equals(leftPosition) || myPosition.equals(rightPosition))) {
+            return unPassantAttacks;
+        }
+
+        if (getTeamTurn() != chessBoard.getPiece(myPosition).getTeamColor()) {
+            return unPassantAttacks;
+        }
+
+        unPassantAttacks.add(new ChessMove(myPosition, new ChessPosition(row + direction, unPassantCol), null));
+
+        return unPassantAttacks;
+    }
+
+    /**
+     * Checks if a castle is possible for the king of either color
+     *
+     * @param myTeamColor the turn color
+     * @param myPosition the position of the king in question
+     * @return any ChessMoves the king could castle to
+     */
     public Collection<ChessMove> checkCastling(TeamColor myTeamColor, ChessPosition myPosition) {
         Collection<ChessMove> castlingMoves = new ArrayList<>();
         int row = 1;
@@ -120,6 +176,13 @@ public class ChessGame {
         return castlingMoves;
     }
 
+    /**
+     * Checks to see if the king would be in check while castling
+     *
+     * @param row The row we are checking, only used for row 1 or 8
+     * @param direction if we are moving right (1) or left (-1)
+     * @return true if the row is clear and the rook at the end hasn't moved
+     */
     public boolean isBackRowClear(int row, int direction) {
         int col = 5 + direction;
         while (col > 1 && col < 8) {
@@ -144,6 +207,14 @@ public class ChessGame {
         //throw new RuntimeException("Unexpected direction while checkingCastling");
     }
 
+    /**
+     * Used to check if the back row is clear and there is a rook on the end that hasn't moved
+     *
+     * @param row The row we are checking, only used for row 1 or 8
+     * @param direction if we are moving right (1) or left (-1)
+     * @param myTeamColor The team who we are checking if they can castle
+     * @return true if the king and the next two spots don't result in a check
+     */
     public boolean noCheckAlongPath(int row, int direction, TeamColor myTeamColor) {
         int col = 5 + direction;
         if (isInCheck(myTeamColor)) {
@@ -203,9 +274,51 @@ public class ChessGame {
             int colDiff = move.getStartPosition().getColumn() - move.getEndPosition().getColumn();
             if (colDiff == 2 || colDiff == -2) {
                 makeMoveCastling(move, movingPiece);
+                setCanUnPassant(false);
+                setUnPassantCol(0);
+                switchTurns();
                 return;
             }
         }
+
+        if (getCanUnPassant() &&
+                movingPiece.getPieceType() == PieceType.PAWN &&
+                move.getEndPosition().getColumn() == getUnPassantCol() &&
+                chessBoard.getPiece(move.getEndPosition()) == null) {
+            makeMoveUnPassant(move, movingPiece);
+            setCanUnPassant(false);
+            setUnPassantCol(0);
+            switchTurns();
+            return;
+        }
+
+        setCanUnPassant(false);
+        setUnPassantCol(0);
+
+        if (movingPiece.getPieceType() == PieceType.PAWN) {
+            int endRow = move.getEndPosition().getRow();
+            int rowDiff = move.getStartPosition().getRow() - endRow;
+            if (rowDiff == 2 || rowDiff == -2) {
+                int endCol = move.getEndPosition().getColumn();
+                ChessPosition rightPawnPosition = new ChessPosition(endRow,endCol +1);
+                ChessPosition leftPawnPosition = new ChessPosition(endRow,endCol -1);
+                ChessPiece rightPawn = chessBoard.getPiece(rightPawnPosition);
+                ChessPiece leftPawn = chessBoard.getPiece(leftPawnPosition);
+                if (rightPawn != null &&
+                        rightPawn.getPieceType() == PieceType.PAWN &&
+                        rightPawn.getTeamColor() != movingPiece.getTeamColor()) {
+                    setCanUnPassant(true);
+                    setUnPassantCol(endCol);
+                } else if (leftPawn != null &&
+                        leftPawn.getPieceType() == PieceType.PAWN &&
+                        leftPawn.getTeamColor() != movingPiece.getTeamColor()) {
+                    setCanUnPassant(true);
+                    setUnPassantCol(endCol);
+                }
+
+            }
+        }
+
 
         chessBoard.addPiece(move.getStartPosition(), null);
         if (move.getPromotionPiece() != null) {
@@ -216,6 +329,10 @@ public class ChessGame {
 
         movingPiece.setNotHasMoved();
 
+        switchTurns();
+    }
+
+    public void switchTurns() {
         if (getTeamTurn() == TeamColor.WHITE) {
             setTeamTurn(TeamColor.BLACK);
         } else {
@@ -223,6 +340,23 @@ public class ChessGame {
         }
     }
 
+    public void makeMoveUnPassant(ChessMove move, ChessPiece pawn){
+        ChessPosition enemyPosition = new ChessPosition(move.getStartPosition().getRow(), move.getEndPosition().getColumn());
+
+        chessBoard.addPiece(move.getStartPosition(), null);
+        chessBoard.addPiece(enemyPosition, null);
+        chessBoard.addPiece(move.getEndPosition(), pawn);
+
+        pawn.setNotHasMoved();
+        switchTurns();
+    }
+
+    /**
+     * If the king is castling, this function handles both his, and the rooks' movement
+     *
+     * @param move the move that is being made
+     * @param king the king ChessPiece that is castling
+     */
     public void makeMoveCastling(ChessMove move, ChessPiece king) {
         int row = move.getEndPosition().getRow();
         int kingEndCol = move.getEndPosition().getColumn();

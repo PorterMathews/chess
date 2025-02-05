@@ -96,7 +96,7 @@ public class ChessMoveHelper {
                 pieceMoves.add(new ChessMove(myPosition, march, null));
             }
             if (board.isValidPawnMove(fastMarch) &&
-                    ((myPosition.getRow() == 2 && myPiece.getTeamColor() == ChessGame.TeamColor.WHITE) ||
+                            ((myPosition.getRow() == 2 && myPiece.getTeamColor() == ChessGame.TeamColor.WHITE) ||
                             (myPosition.getRow() == 7 && myPiece.getTeamColor() == ChessGame.TeamColor.BLACK))) {
                 pieceMoves.add(new ChessMove(myPosition, fastMarch, null));
             }
