@@ -119,7 +119,7 @@ public class ChessGame {
         return validMoves;
     }
 
-    /**
+    /** Calculates the enPassant attacks
      * @param myTeamColor The color of the pawn that is being checked
      * @param myPosition the position of the pawn
      * @return the attack move only if the pawn can perform an enPassant */
