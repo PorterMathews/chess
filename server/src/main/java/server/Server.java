@@ -1,6 +1,8 @@
 package server;
 
+import dataaccess.DataAccessException;
 import spark.*;
+import com.google.gson.Gson;
 
 public class Server {
 
@@ -10,6 +12,7 @@ public class Server {
         Spark.staticFiles.location("web");
 
         // Register your endpoints and handle exceptions here.
+        Spark.post("?", this::register);
 
         //This line initializes the server and can be removed once you have a functioning endpoint 
         Spark.init();
@@ -21,5 +24,15 @@ public class Server {
     public void stop() {
         Spark.stop();
         Spark.awaitStop();
+    }
+
+    public int port() {
+        return Spark.port();
+    }
+
+    private Object register(Request req, Response res) throws DataAccessException {
+        var register = new Gson().fromJson(req.body(), request.class);
+        var result = service.register(reg);
+        return new Gson().toJson(result);
     }
 }
