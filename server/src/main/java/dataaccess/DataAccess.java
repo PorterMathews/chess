@@ -1,5 +1,8 @@
 package dataaccess;
 
+import model.*;
+
 public interface DataAccess {
-    Register register(Regester reg) throws RuntimeException
+    UserData register(UserData u) throws RuntimeException;
+    void clearDatabase() throws RuntimeException;
 }

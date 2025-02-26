@@ -1,6 +1,10 @@
 package service;
 
+import dataaccess.DataAccess;
 import dataaccess.DataAccessException;
+import dataaccess.MemoryDataAccess;
+import model.AuthData;
+import model.UserData;
 
 public class Service {
 
@@ -10,7 +14,13 @@ public class Service {
         this.dataAccess = dataAccess;
     }
 
-    public Register register(register reg) throws DataAccessException {
-        return dataAccess.register(reg);
+    public AuthData register(UserData u) throws DataAccessException {
+        UserData user = dataAccess.register(u);
+        String authToken = ((MemoryDataAccess) dataAccess).generateAuthToken(user.username());
+        return new AuthData(authToken, user.username());
+    }
+
+    public void clearDatabase() throws DataAccessException {
+        dataAccess.clearDatabase();
     }
 }
