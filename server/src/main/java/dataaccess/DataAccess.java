@@ -1,5 +1,5 @@
 package dataaccess;
 
 public interface DataAccess {
-    Register register(Regester reg) throws RuntimeException;
+    Register register(Regester reg) throws RuntimeException
 }
