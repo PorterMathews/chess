@@ -3,6 +3,7 @@ package dataaccess;
 import model.GameData;
 import model.UserData;
 
+import java.util.ArrayList;
 import java.util.UUID;
 import java.util.Collection;
 import java.util.HashMap;
@@ -11,6 +12,10 @@ public class MemoryDataAccess implements DataAccess {
     private final HashMap<String, UserData> users = new HashMap<>();
     private final HashMap<String, String> authTokens = new HashMap<>();
     private final HashMap<Integer, GameData> gameInfo = new HashMap<>();
+
+    public Collection<UserData> getUsers() {
+        return users.values();
+    }
 
     public UserData register(UserData userData) {
         userData = new UserData(userData.username(), userData.password(), userData.email());

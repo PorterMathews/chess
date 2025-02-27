@@ -7,11 +7,13 @@ import service.Service;
 import spark.*;
 import com.google.gson.Gson;
 
+import java.util.Map;
+
 public class Server {
     private final Service service;
 
     public Server() {
-        this.service = new Service(new MemoryDataAccess()); // Default MemoryDataAccess
+        this.service = new Service(new MemoryDataAccess());
     }
 
     public Server(Service service) {
@@ -44,12 +46,23 @@ public class Server {
     }
 
     private Object register(Request req, Response res) throws DataAccessException {
-        var userData = new Gson().fromJson(req.body(), UserData.class);
-        var authData = service.register(userData);
+        try {
+            var userData = new Gson().fromJson(req.body(), UserData.class);
+            var authData = service.register(userData);
+            res.status(200);
+            return new Gson().toJson(authData);
 
-        res.status(200);
-
-        return new Gson().toJson(authData);
+        } catch (DataAccessException error) {
+            if (error.getMessage().equals("Error: Bad Request")) {
+                res.status(400);
+            } else if (error.getMessage().equals("Error: Username already taken")) {
+                res.status(403);
+            }
+            return new Gson().toJson(Map.of("message", error.getMessage()));
+        } catch (Exception error) {
+            res.status(500);
+            return new Gson().toJson(Map.of("message", "Error: Internal Server Error"));
+        }
     }
 
     private Object clearDatabase(Request req, Response res) throws DataAccessException {
