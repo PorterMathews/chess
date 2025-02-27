@@ -17,7 +17,7 @@ public class MemoryDataAccess implements DataAccess {
         return users.values();
     }
 
-    public UserData register(UserData userData) {
+    public UserData registerUser(UserData userData) {
         userData = new UserData(userData.username(), userData.password(), userData.email());
         users.put(userData.username(), userData);
         return userData;
@@ -34,5 +34,19 @@ public class MemoryDataAccess implements DataAccess {
         authTokens.clear();
         gameInfo.clear();
     }
+
+    public void clearUserData() {
+        users.clear();
+    }
+
+    public void clearAuthData() {
+        gameInfo.clear();
+    }
+
+    public void clearGameData() {
+        authTokens.clear();
+    }
+
+
 
 }

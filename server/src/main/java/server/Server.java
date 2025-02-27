@@ -4,6 +4,7 @@ import dataaccess.DataAccessException;
 import dataaccess.MemoryDataAccess;
 import model.UserData;
 import service.Service;
+import service.UserService;
 import spark.*;
 import com.google.gson.Gson;
 
@@ -11,13 +12,11 @@ import java.util.Map;
 
 public class Server {
     private final Service service;
+    private final UserService userService;
 
     public Server() {
         this.service = new Service(new MemoryDataAccess());
-    }
-
-    public Server(Service service) {
-        this.service = service;
+        this.userService = new UserService(new MemoryDataAccess());
     }
 
     public int run(int desiredPort) {
@@ -28,6 +27,7 @@ public class Server {
         // Register your endpoints and handle exceptions here.
         Spark.post("/user", this::register);
         Spark.delete("/db", this::clearDatabase);
+        Spark.post("/session", this::login);
 
         //This line initializes the server and can be removed once you have a functioning endpoint 
         Spark.init();
@@ -45,13 +45,23 @@ public class Server {
         Spark.awaitStop();
     }
 
+    private Object clearDatabase(Request req, Response res) throws DataAccessException {
+        try {
+            service.clearDatabase();
+            res.status(200);
+            return "";
+        } catch (Exception error) {
+            res.status(500);
+            return new Gson().toJson(Map.of("message", "Error: Internal Server Error"));
+        }
+    }
+
     private Object register(Request req, Response res) throws DataAccessException {
         try {
             var userData = new Gson().fromJson(req.body(), UserData.class);
-            var authData = service.register(userData);
+            var authData = userService.register(userData);
             res.status(200);
             return new Gson().toJson(authData);
-
         } catch (DataAccessException error) {
             if (error.getMessage().equals("Error: Bad Request")) {
                 res.status(400);
@@ -65,9 +75,21 @@ public class Server {
         }
     }
 
-    private Object clearDatabase(Request req, Response res) throws DataAccessException {
-        service.clearDatabase();
-        res.status(200);
-        return "";
+    private Object login(Request req, Response res) throws DataAccessException {
+        try {
+            var userData = new Gson().fromJson(req.body(), UserData.class);
+            var authData = userService.login(userData);
+            res.status(200);
+            return new Gson().toJson(authData);
+        } catch(DataAccessException error) {
+            if (error.getMessage().equals("Error: Unauthorized")) {
+                res.status(401);
+            }
+            return new Gson().toJson(Map.of("message", error.getMessage()));
+        } catch (Exception error) {
+            res.status(500);
+            return new Gson().toJson(Map.of("message", "Error: Internal Server Error"));
+        }
     }
+
 }
