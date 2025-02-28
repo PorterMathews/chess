@@ -16,6 +16,5 @@ public class Service {
         dataAccess.clearAuthData();
         dataAccess.clearUserData();
         dataAccess.clearGameData();
-
     }
 }

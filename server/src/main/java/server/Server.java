@@ -2,7 +2,7 @@ package server;
 
 import dataaccess.DataAccessException;
 import dataaccess.MemoryDataAccess;
-import model.UserData;
+import model.*;
 import service.Service;
 import service.UserService;
 import spark.*;
@@ -28,6 +28,7 @@ public class Server {
         Spark.post("/user", this::register);
         Spark.delete("/db", this::clearDatabase);
         Spark.post("/session", this::login);
+        Spark.delete("/session", this::logout);
 
         //This line initializes the server and can be removed once you have a functioning endpoint 
         Spark.init();
@@ -81,6 +82,23 @@ public class Server {
             var authData = userService.login(userData);
             res.status(200);
             return new Gson().toJson(authData);
+        } catch(DataAccessException error) {
+            if (error.getMessage().equals("Error: Unauthorized")) {
+                res.status(401);
+            }
+            return new Gson().toJson(Map.of("message", error.getMessage()));
+        } catch (Exception error) {
+            res.status(500);
+            return new Gson().toJson(Map.of("message", "Error: Internal Server Error"));
+        }
+    }
+
+    private Object logout(Request req, Response res) throws DataAccessException {
+        try{
+            String authToken = req.headers("Authorization");
+            userService.logout(authToken);
+            res.status(200);
+            return "";
         } catch(DataAccessException error) {
             if (error.getMessage().equals("Error: Unauthorized")) {
                 res.status(401);

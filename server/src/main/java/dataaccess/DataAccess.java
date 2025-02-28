@@ -11,4 +11,8 @@ public interface DataAccess {
     void clearAuthData() throws DataAccessException;
     void clearGameData() throws DataAccessException;
     Collection<UserData> getUsers() throws  DataAccessException;
+    Collection<AuthData> getAuth() throws  DataAccessException;
+    void logout(String authToken) throws  DataAccessException;
+    String getAuthTokenByUsername(String userName) throws DataAccessException;
+    boolean authTokenExists(String AuthToken) throws DataAccessException;
 }

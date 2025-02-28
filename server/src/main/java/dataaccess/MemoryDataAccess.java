@@ -1,12 +1,10 @@
 package dataaccess;
 
+import model.AuthData;
 import model.GameData;
 import model.UserData;
 
-import java.util.ArrayList;
-import java.util.UUID;
-import java.util.Collection;
-import java.util.HashMap;
+import java.util.*;
 
 public class MemoryDataAccess implements DataAccess {
     private final HashMap<String, UserData> users = new HashMap<>();
@@ -16,6 +14,27 @@ public class MemoryDataAccess implements DataAccess {
     public Collection<UserData> getUsers() {
         return users.values();
     }
+
+    public Collection<AuthData> getAuth() {
+        return authTokens.entrySet().stream()
+                .map(entry -> new AuthData(entry.getKey(), entry.getValue()))
+                .toList();
+    }
+
+    public String getAuthTokenByUsername(String username) {
+        for (var authToken : authTokens.entrySet()) {
+            if (authToken.getValue().equals(username)) {
+                return authToken.getKey();
+            }
+        }
+        return null;
+    }
+
+    public boolean authTokenExists(String AuthToken) {
+        return authTokens.containsKey(AuthToken);
+    }
+
+
 
     public UserData registerUser(UserData userData) {
         userData = new UserData(userData.username(), userData.password(), userData.email());
@@ -27,6 +46,10 @@ public class MemoryDataAccess implements DataAccess {
         String token = UUID.randomUUID().toString();
         authTokens.put(token, username);
         return token;
+    }
+
+    public void logout(String authToken) {
+        authTokens.remove(authToken);
     }
 
     public void clearDatabase() {
@@ -46,7 +69,4 @@ public class MemoryDataAccess implements DataAccess {
     public void clearGameData() {
         authTokens.clear();
     }
-
-
-
 }

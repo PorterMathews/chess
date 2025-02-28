@@ -42,4 +42,11 @@ public class UserService {
         String authToken = ((MemoryDataAccess) dataAccess).generateAuthToken(u.username());
         return new AuthData(authToken, u.username());
     }
+
+    public void logout(String authToken) throws DataAccessException {
+        if (!dataAccess.authTokenExists(authToken)) {
+            throw new DataAccessException("Error: Unauthorized");
+        }
+        dataAccess.logout(authToken);
+    }
 }
