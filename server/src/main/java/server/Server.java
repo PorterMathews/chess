@@ -115,7 +115,6 @@ public class Server {
 
     private Object createGame(Request req, Response res) throws DataAccessException {
         try{
-            System.out.println("Raw create game request body: " + req.body()); // Debugging
             String authToken = req.headers("Authorization");
             String gameName = new Gson().fromJson(req.body(), String.class);
             int GameID = gameService.createGame(authToken, gameName);
