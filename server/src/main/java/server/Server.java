@@ -5,6 +5,7 @@ import dataaccess.MemoryDataAccess;
 import model.*;
 import service.Service;
 import service.UserService;
+import service.GameService;
 import spark.*;
 import com.google.gson.Gson;
 
@@ -13,25 +14,27 @@ import java.util.Map;
 public class Server {
     private final Service service;
     private final UserService userService;
+    private final GameService gameService;
 
     public Server() {
         this.service = new Service(new MemoryDataAccess());
         this.userService = new UserService(new MemoryDataAccess());
+        this.gameService = new GameService(new MemoryDataAccess());
+
+                new GameService(new MemoryDataAccess());
     }
 
     public int run(int desiredPort) {
         Spark.port(desiredPort);
 
-        Spark.staticFiles.location("web");
+        Spark.staticFiles.location("/web");
 
         // Register your endpoints and handle exceptions here.
         Spark.post("/user", this::register);
         Spark.delete("/db", this::clearDatabase);
         Spark.post("/session", this::login);
         Spark.delete("/session", this::logout);
-
-        //This line initializes the server and can be removed once you have a functioning endpoint 
-        Spark.init();
+        Spark.post("/game", this::createGame);
 
         Spark.awaitInitialization();
         return Spark.port();
@@ -99,6 +102,25 @@ public class Server {
             userService.logout(authToken);
             res.status(200);
             return "";
+        } catch(DataAccessException error) {
+            if (error.getMessage().equals("Error: Unauthorized")) {
+                res.status(401);
+            }
+            return new Gson().toJson(Map.of("message", error.getMessage()));
+        } catch (Exception error) {
+            res.status(500);
+            return new Gson().toJson(Map.of("message", "Error: Internal Server Error"));
+        }
+    }
+
+    private Object createGame(Request req, Response res) throws DataAccessException {
+        try{
+            System.out.println("Raw create game request body: " + req.body()); // Debugging
+            String authToken = req.headers("Authorization");
+            String gameName = new Gson().fromJson(req.body(), String.class);
+            int GameID = gameService.createGame(authToken, gameName);
+            res.status(200);
+            return new Gson().toJson(GameID);
         } catch(DataAccessException error) {
             if (error.getMessage().equals("Error: Unauthorized")) {
                 res.status(401);

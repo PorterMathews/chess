@@ -15,4 +15,5 @@ public interface DataAccess {
     void logout(String authToken) throws  DataAccessException;
     String getAuthTokenByUsername(String userName) throws DataAccessException;
     boolean authTokenExists(String AuthToken) throws DataAccessException;
+    int createGame(String gameName) throws DataAccessException;
 }
