@@ -32,16 +32,18 @@ public class GameService {
         }
 
         String lowerCasePlayerColor = playerColor.toLowerCase();
+        if (!(lowerCasePlayerColor.equals("white") || lowerCasePlayerColor.equals("black"))) {
+            throw new DataAccessException("bad request");
+        }
         if (gameData.whiteUsername() != null && gameData.blackUsername() != null) {
-            throw new DataAccessException("Username already taken");
+            throw new DataAccessException("Players full for game");
         } else if (lowerCasePlayerColor.equals("white") && gameData.whiteUsername() != null) {
             throw new DataAccessException("Username already taken");
         } else if (lowerCasePlayerColor.equals("black") && gameData.blackUsername() != null) {
             throw new DataAccessException("Username already taken");
         }
-
         AuthData authData = dataAccess.getAuthDataByAuthToken(authToken);
-        dataAccess.addUserToGame(authData, gameID, lowerCasePlayerColor);
+        dataAccess.addUserToGame(authData.username(), gameID, lowerCasePlayerColor);
     }
 
     public Collection<GameData> getGames(String authToken) throws DataAccessException{

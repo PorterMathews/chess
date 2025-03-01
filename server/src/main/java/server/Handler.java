@@ -11,7 +11,6 @@ import spark.Response;
 import service.Service;
 import service.UserService;
 import service.GameService;
-
 import java.util.Collection;
 import java.util.Map;
 
@@ -27,71 +26,103 @@ public class Handler {
         this.gameService = gameService;
     }
 
-    public Object clearDatabase(Request req, Response res) throws DataAccessException {
+    /**
+     * @param req the incoming request
+     * @param res the response, including status code
+     * @return empty sting
+     */
+    public Object clearDatabase(Request req, Response res) {
         try {
             service.clearDatabase();
             res.status(200);
             return "";
-        } catch (Exception error) {
+        }
+        catch (Exception error) {
             res.status(500);
             return new Gson().toJson(Map.of("message", "Error: Internal Server Error"));
         }
     }
 
-    public Object register(Request req, Response res) throws DataAccessException {
+    /**
+     * @param req the incoming request
+     * @param res the response, including status code
+     * @return authData
+     */
+    public Object register(Request req, Response res) {
         try {
             var userData = new Gson().fromJson(req.body(), UserData.class);
             var authData = userService.register(userData);
             res.status(200);
             return new Gson().toJson(authData);
-        } catch (DataAccessException error) {
-            if (error.getMessage().equals("Bad Request")) {
+        }
+        catch (DataAccessException error) {
+            if (error.getMessage().equals("Bad request")) {
                 res.status(400);
             } else if (error.getMessage().equals("Username already taken")) {
                 res.status(403);
             }
             return new Gson().toJson(Map.of("message","Error: "+ error.getMessage()));
-        } catch (Exception error) {
+        }
+        catch (Exception error) {
             res.status(500);
             return new Gson().toJson(Map.of("message", "Error: Internal Server Error"));
         }
     }
 
-    public Object login(Request req, Response res) throws DataAccessException {
+    /**
+     * @param req the incoming request
+     * @param res the response, including status code
+     * @return authData
+     */
+    public Object login(Request req, Response res) {
         try {
             var userData = new Gson().fromJson(req.body(), UserData.class);
             var authData = userService.login(userData);
             res.status(200);
             return new Gson().toJson(authData);
-        } catch(DataAccessException error) {
+        }
+        catch(DataAccessException error) {
             if (error.getMessage().equals("Unauthorized")) {
                 res.status(401);
             }
             return new Gson().toJson(Map.of("message","Error: "+ error.getMessage()));
-        } catch (Exception error) {
+        }
+        catch (Exception error) {
             res.status(500);
             return new Gson().toJson(Map.of("message", "Error: Internal Server Error"));
         }
     }
 
-    public Object logout(Request req, Response res) throws DataAccessException {
+    /**
+     * @param req the incoming request
+     * @param res the response, including status code
+     * @return empty sting
+     */
+    public Object logout(Request req, Response res) {
         try{
             String authToken = req.headers("Authorization");
             userService.logout(authToken);
             res.status(200);
             return "";
-        } catch(DataAccessException error) {
+        }
+        catch(DataAccessException error) {
             if (error.getMessage().equals("Unauthorized")) {
                 res.status(401);
             }
             return new Gson().toJson(Map.of("message","Error: "+ error.getMessage()));
-        } catch (Exception error) {
+        }
+        catch (Exception error) {
             res.status(500);
             return new Gson().toJson(Map.of("message", "Error: Internal Server Error"));
         }
     }
 
-    public Object createGame(Request req, Response res) throws DataAccessException {
+    /**
+     * @param req the incoming request
+     * @param res the response, including status code
+     * @return the Game ID
+     */
+    public Object createGame(Request req, Response res) {
         try{
             String authToken = req.headers("Authorization");
             JsonObject jsonObject = JsonParser.parseString(req.body()).getAsJsonObject();
@@ -99,28 +130,35 @@ public class Handler {
             int GameID = gameService.createGame(authToken, gameName);
             res.status(200);
             return new Gson().toJson(Map.of("gameID", GameID));
-        } catch(DataAccessException error) {
+        }
+        catch(DataAccessException error) {
             if (error.getMessage().equals("Unauthorized")) {
                 res.status(401);
             }
             return new Gson().toJson(Map.of("message","Error: "+ error.getMessage()));
-        } catch (Exception error) {
+        }
+        catch (Exception error) {
             res.status(500);
             return new Gson().toJson(Map.of("message", "Error: Internal Server Error"));
         }
     }
 
-    public Object joinGame(Request req, Response res) throws DataAccessException {
+    /**
+     * @param req the incoming request
+     * @param res the response, including status code
+     * @return empty sting
+     */
+    public Object joinGame(Request req, Response res) {
         try {
             String authToken = req.headers("Authorization");
             JsonObject jsonObject = JsonParser.parseString(req.body()).getAsJsonObject();
             String playerColor;
             int gameID;
-
             try {
                 playerColor = jsonObject.get("playerColor").getAsString();
                 gameID = jsonObject.get("gameID").getAsInt();
-            } catch(Exception error) {
+            }
+            catch(Exception error) {
                 res.status(400);
                 return new Gson().toJson(Map.of("message", "Error: bad request"));
             }
@@ -128,33 +166,42 @@ public class Handler {
             gameService.joinGame(authToken, playerColor, gameID);
             res.status(200);
             return "";
-        } catch(DataAccessException error) {
+        }
+        catch(DataAccessException error) {
             if (error.getMessage().equals("Unauthorized")) {
                 res.status(401);
-            } else if (error.getMessage().equals("Username already taken")) {
+            } else if (error.getMessage().equals("Username already taken") || error.getMessage().equals("Players full for game")) {
                 res.status(403);
             } else if (error.getMessage().equals("bad request")) {
                 res.status(400);
             }
             return new Gson().toJson(Map.of("message","Error: "+ error.getMessage()));
-        }  catch (Exception error) {
+        }
+        catch (Exception error) {
             res.status(500);
             return new Gson().toJson(Map.of("message", "Error: Internal Server Error"));
         }
     }
 
-    public Object getGames(Request req, Response res) throws DataAccessException {
+    /**
+     * @param req the incoming request
+     * @param res the response, including status code
+     * @return a list of all games
+     */
+    public Object getGames(Request req, Response res) {
         try {
             String authToken = req.headers("Authorization");
             Collection<GameData> gameData = gameService.getGames(authToken);
             res.status(200);
             return new Gson().toJson(Map.of("games", gameData));
-        } catch(DataAccessException error) {
+        }
+        catch(DataAccessException error) {
             if (error.getMessage().equals("Unauthorized")) {
                 res.status(401);
             }
             return new Gson().toJson(Map.of("message","Error: "+ error.getMessage()));
-        } catch (Exception error) {
+        }
+        catch (Exception error) {
             res.status(500);
             return new Gson().toJson(Map.of("message", "Error: Internal Server Error"));
         }

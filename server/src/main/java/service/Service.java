@@ -1,9 +1,6 @@
 package service;
 
 import dataaccess.*;
-import model.*;
-
-import java.util.Collection;
 
 public class Service {
     private final DataAccess dataAccess;
