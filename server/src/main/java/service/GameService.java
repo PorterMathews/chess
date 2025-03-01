@@ -13,7 +13,7 @@ public class GameService {
 
     public int createGame(String authToken, String gameName) throws DataAccessException {
         if (!dataAccess.authTokenExists(authToken)) {
-            throw new DataAccessException("Unauthorized");
+            throw new DataAccessException("Unauthorized to Create Game");
         }
         return dataAccess.createGame(gameName);
     }

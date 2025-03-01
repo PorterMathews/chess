@@ -56,7 +56,7 @@ public class UserService {
      */
     public void logout(String authToken) throws DataAccessException {
         if (!dataAccess.authTokenExists(authToken)) {
-            throw new DataAccessException("Unauthorized");
+            throw new DataAccessException("Unauthorized Token");
         }
 
         dataAccess.logout(authToken);

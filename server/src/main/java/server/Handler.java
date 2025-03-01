@@ -106,7 +106,7 @@ public class Handler {
             return "";
         }
         catch(DataAccessException error) {
-            if (error.getMessage().equals("Unauthorized")) {
+            if (error.getMessage().equals("Unauthorized Token")) {
                 res.status(401);
             } return new Gson().toJson(Map.of("message","Error: "+ error.getMessage()));
         }
@@ -126,12 +126,12 @@ public class Handler {
             String authToken = req.headers("Authorization");
             JsonObject jsonObject = JsonParser.parseString(req.body()).getAsJsonObject();
             String gameName = jsonObject.get("gameName").getAsString();
-            int GameId = gameService.createGame(authToken, gameName);
+            int gameID = gameService.createGame(authToken, gameName);
             res.status(200);
-            return new Gson().toJson(Map.of("gameID", GameId));
+            return new Gson().toJson(Map.of("gameID", gameID));
         }
         catch(DataAccessException error) {
-            if (error.getMessage().equals("Unauthorized")) {
+            if (error.getMessage().equals("Unauthorized to Create Game")) {
                 res.status(401);
             } return new Gson().toJson(Map.of("message","Error: "+ error.getMessage()));
         }
