@@ -8,9 +8,9 @@ import model.UserData;
 import java.util.*;
 
 public class MemoryDataAccess implements DataAccess {
-    private final HashMap<String, UserData> users = new HashMap<>();
-    private final HashMap<String, String> authTokens = new HashMap<>();
-    private final HashMap<Integer, GameData> gameInfo = new HashMap<>();
+    private static final HashMap<String, UserData> users = new HashMap<>();
+    private static final HashMap<String, String> authTokens = new HashMap<>();
+    private static final HashMap<Integer, GameData> gameInfo = new HashMap<>();
     private final Random random = new Random();
 
     public Collection<UserData> getUsers() {
@@ -32,8 +32,15 @@ public class MemoryDataAccess implements DataAccess {
         return null;
     }
 
-    public boolean authTokenExists(String AuthToken) {
-        return authTokens.containsKey(AuthToken);
+    public AuthData getAuthDataByAuthToken(String authToken) {
+        String username = authTokens.get(authToken);
+        return (username != null) ? new AuthData(authToken, username) : null;
+    }
+
+    public boolean authTokenExists(String authToken) {
+        System.out.println("Checking auth token: " + authToken);
+        System.out.println("Current auth tokens: " + authTokens);
+        return authTokens.containsKey(authToken);
     }
 
     public UserData registerUser(UserData userData) {
@@ -60,6 +67,31 @@ public class MemoryDataAccess implements DataAccess {
         var gameData = new GameData(gameID, null, null, gameName, new ChessGame());
         gameInfo.put(gameID, gameData);
         return gameID;
+    }
+
+    public GameData getGameByID(int gameID) {
+        return gameInfo.get(gameID);
+    }
+
+    public void addUserToGame(AuthData authData, int gameID, String playerColor) throws DataAccessException {
+        GameData game = gameInfo.get(gameID);
+        if (game == null) {
+            throw new DataAccessException("Error: Game not found");
+        }
+        GameData gameData;
+
+        if (playerColor.equals("black")) {
+            gameData = new GameData(game.gameID(), game.whiteUsername(), authData.username(), game.gameName(), game.game());
+        } else if (playerColor.equals("white")) {
+            gameData = new GameData(game.gameID(), authData.username(), game.blackUsername(), game.gameName(), game.game());
+        } else {
+            throw new DataAccessException("Error: bad request");
+        }
+        gameInfo.put(gameData.gameID(), gameData);
+    }
+
+    public Collection<GameData> getGames() {
+        return gameInfo.values();
     }
 
     public void clearDatabase() {

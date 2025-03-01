@@ -17,4 +17,37 @@ public class GameService {
         }
         return dataAccess.createGame(gameName);
     }
+
+    public void joinGame(String authToken, String playerColor, int gameID) throws DataAccessException {
+        if (!dataAccess.authTokenExists(authToken)) {
+            throw new DataAccessException("Error: Unauthorized");
+        }
+        String gameIDString = String.valueOf(gameID);
+        if (playerColor == null || gameIDString.length() != 4) {
+            throw new DataAccessException("Error: bad request");
+        }
+        GameData gameData = dataAccess.getGameByID(gameID);
+        if (gameData == null) {
+            throw new DataAccessException("Error: bad request");
+        }
+
+        String lowerCasePlayerColor = playerColor.toLowerCase();
+        if (gameData.whiteUsername() != null && gameData.blackUsername() != null) {
+            throw new DataAccessException("Error: Username already taken");
+        } else if (lowerCasePlayerColor.equals("white") && gameData.whiteUsername() != null) {
+            throw new DataAccessException("Error: Username already taken");
+        } else if (lowerCasePlayerColor.equals("black") && gameData.blackUsername() != null) {
+            throw new DataAccessException("Error: Username already taken");
+        }
+
+        AuthData authData = dataAccess.getAuthDataByAuthToken(authToken);
+        dataAccess.addUserToGame(authData, gameID, lowerCasePlayerColor);
+    }
+
+    public Collection<GameData> getGames(String authToken) throws DataAccessException{
+        if (!dataAccess.authTokenExists(authToken)) {
+            throw new DataAccessException("Error: Unauthorized");
+        }
+        return dataAccess.getGames();
+    }
 }
