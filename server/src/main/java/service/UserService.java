@@ -14,12 +14,12 @@ public class UserService {
 
     public AuthData register(UserData u) throws DataAccessException {
         if (u.username() == null || u.password() == null || u.email() == null) {
-            throw new DataAccessException("Error: Bad Request");
+            throw new DataAccessException("Bad Request");
         }
         Collection<UserData> userData = dataAccess.getUsers();
         for (UserData data : userData) {
             if (data.username().equals(u.username())) {
-                throw new DataAccessException("Error: Username already taken");
+                throw new DataAccessException("Username already taken");
             }
         }
         UserData user = dataAccess.registerUser(u);
@@ -37,7 +37,7 @@ public class UserService {
             }
         }
         if (!loginMatch) {
-            throw new DataAccessException("Error: Unauthorized");
+            throw new DataAccessException("Unauthorized");
         }
         String authToken = ((MemoryDataAccess) dataAccess).generateAuthToken(u.username());
         return new AuthData(authToken, u.username());
@@ -45,7 +45,7 @@ public class UserService {
 
     public void logout(String authToken) throws DataAccessException {
         if (!dataAccess.authTokenExists(authToken)) {
-            throw new DataAccessException("Error: Unauthorized");
+            throw new DataAccessException("Unauthorized");
         }
         dataAccess.logout(authToken);
     }

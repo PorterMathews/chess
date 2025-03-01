@@ -13,31 +13,31 @@ public class GameService {
 
     public int createGame(String authToken, String gameName) throws DataAccessException {
         if (!dataAccess.authTokenExists(authToken)) {
-            throw new DataAccessException("Error: Unauthorized");
+            throw new DataAccessException("Unauthorized");
         }
         return dataAccess.createGame(gameName);
     }
 
     public void joinGame(String authToken, String playerColor, int gameID) throws DataAccessException {
         if (!dataAccess.authTokenExists(authToken)) {
-            throw new DataAccessException("Error: Unauthorized");
+            throw new DataAccessException("Unauthorized");
         }
         String gameIDString = String.valueOf(gameID);
         if (playerColor == null || gameIDString.length() != 4) {
-            throw new DataAccessException("Error: bad request");
+            throw new DataAccessException("bad request");
         }
         GameData gameData = dataAccess.getGameByID(gameID);
         if (gameData == null) {
-            throw new DataAccessException("Error: bad request");
+            throw new DataAccessException("bad request");
         }
 
         String lowerCasePlayerColor = playerColor.toLowerCase();
         if (gameData.whiteUsername() != null && gameData.blackUsername() != null) {
-            throw new DataAccessException("Error: Username already taken");
+            throw new DataAccessException("Username already taken");
         } else if (lowerCasePlayerColor.equals("white") && gameData.whiteUsername() != null) {
-            throw new DataAccessException("Error: Username already taken");
+            throw new DataAccessException("Username already taken");
         } else if (lowerCasePlayerColor.equals("black") && gameData.blackUsername() != null) {
-            throw new DataAccessException("Error: Username already taken");
+            throw new DataAccessException("Username already taken");
         }
 
         AuthData authData = dataAccess.getAuthDataByAuthToken(authToken);
@@ -46,7 +46,7 @@ public class GameService {
 
     public Collection<GameData> getGames(String authToken) throws DataAccessException{
         if (!dataAccess.authTokenExists(authToken)) {
-            throw new DataAccessException("Error: Unauthorized");
+            throw new DataAccessException("Unauthorized");
         }
         return dataAccess.getGames();
     }

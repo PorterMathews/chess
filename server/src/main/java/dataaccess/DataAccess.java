@@ -6,14 +6,11 @@ import java.util.Collection;
 
 public interface DataAccess {
     UserData registerUser(UserData u) throws DataAccessException;
-    void clearDatabase() throws DataAccessException;
     void clearUserData() throws DataAccessException;
     void clearAuthData() throws DataAccessException;
     void clearGameData() throws DataAccessException;
     Collection<UserData> getUsers() throws  DataAccessException;
-    Collection<AuthData> getAuth() throws  DataAccessException;
-    void logout(String authToken) throws  DataAccessException;
-    String getAuthTokenByUsername(String userName) throws DataAccessException;
+    void logout(String authToken) throws  DataAccessException;;
     AuthData getAuthDataByAuthToken(String authToken) throws DataAccessException;
     boolean authTokenExists(String AuthToken) throws DataAccessException;
     int createGame(String gameName) throws DataAccessException;

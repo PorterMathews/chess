@@ -1,18 +1,10 @@
 package server;
 
-import dataaccess.DataAccessException;
 import dataaccess.MemoryDataAccess;
-import model.*;
 import service.Service;
 import service.UserService;
 import service.GameService;
 import spark.*;
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-
-import java.util.Collection;
-import java.util.Map;
 
 public class Server {
     private final Service service;

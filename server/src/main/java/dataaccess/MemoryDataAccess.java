@@ -17,21 +17,6 @@ public class MemoryDataAccess implements DataAccess {
         return users.values();
     }
 
-    public Collection<AuthData> getAuth() {
-        return authTokens.entrySet().stream()
-                .map(entry -> new AuthData(entry.getKey(), entry.getValue()))
-                .toList();
-    }
-
-    public String getAuthTokenByUsername(String username) {
-        for (var authToken : authTokens.entrySet()) {
-            if (authToken.getValue().equals(username)) {
-                return authToken.getKey();
-            }
-        }
-        return null;
-    }
-
     public AuthData getAuthDataByAuthToken(String authToken) {
         String username = authTokens.get(authToken);
         return (username != null) ? new AuthData(authToken, username) : null;
@@ -76,7 +61,7 @@ public class MemoryDataAccess implements DataAccess {
     public void addUserToGame(AuthData authData, int gameID, String playerColor) throws DataAccessException {
         GameData game = gameInfo.get(gameID);
         if (game == null) {
-            throw new DataAccessException("Error: Game not found");
+            throw new DataAccessException("Game not found");
         }
         GameData gameData;
         String lowerCasePlayerColor = playerColor.toLowerCase();
@@ -85,19 +70,13 @@ public class MemoryDataAccess implements DataAccess {
         } else if (lowerCasePlayerColor.equals("white")) {
             gameData = new GameData(game.gameID(), authData.username(), game.blackUsername(), game.gameName(), game.game());
         } else {
-            throw new DataAccessException("Error: bad request");
+            throw new DataAccessException("bad request");
         }
         gameInfo.put(gameData.gameID(), gameData);
     }
 
     public Collection<GameData> getGames() {
         return gameInfo.values();
-    }
-
-    public void clearDatabase() {
-        users.clear();
-        authTokens.clear();
-        gameInfo.clear();
     }
 
     public void clearUserData() {
