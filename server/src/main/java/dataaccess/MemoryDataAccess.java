@@ -7,16 +7,16 @@ import model.UserData;
 import java.util.*;
 
 public class MemoryDataAccess implements DataAccess {
-    private static final HashMap<String, UserData> users = new HashMap<>();
-    private static final HashMap<String, String> authTokens = new HashMap<>();
-    private static final HashMap<Integer, GameData> gameInfo = new HashMap<>();
+    private static final HashMap<String, UserData> USERS = new HashMap<>();
+    private static final HashMap<String, String> AUTH_TOKENS = new HashMap<>();
+    private static final HashMap<Integer, GameData> GAME_INFO = new HashMap<>();
     private final Random random = new Random();
 
     /**
      * @return All users and their data
      */
     public Collection<UserData> getUsers() {
-        return users.values();
+        return USERS.values();
     }
 
     /**
@@ -24,7 +24,7 @@ public class MemoryDataAccess implements DataAccess {
      * @return true if the userName has been stored, else false
      */
     public boolean isUserInDB(String userName) {
-        return users.containsKey(userName);
+        return USERS.containsKey(userName);
     }
 
     /**
@@ -33,7 +33,7 @@ public class MemoryDataAccess implements DataAccess {
      * @throws DataAccessException if the user doesn't exist
      */
     public String getPassword(UserData u) throws DataAccessException {
-        UserData user = users.get(u.username());
+        UserData user = USERS.get(u.username());
         if (user == null) {
             throw new DataAccessException("Unauthorized");
         }
@@ -45,7 +45,7 @@ public class MemoryDataAccess implements DataAccess {
      * @return AuthData for user with authToken
      */
     public AuthData getAuthDataByAuthToken(String authToken) {
-        String username = authTokens.get(authToken);
+        String username = AUTH_TOKENS.get(authToken);
         return (username != null) ? new AuthData(authToken, username) : null;
     }
 
@@ -56,7 +56,7 @@ public class MemoryDataAccess implements DataAccess {
     public boolean authTokenExists(String authToken) {
         //System.out.println("Checking auth token: " + authToken);
         //System.out.println("Current auth tokens: " + authTokens);
-        return authTokens.containsKey(authToken);
+        return AUTH_TOKENS.containsKey(authToken);
     }
 
     /**
@@ -65,7 +65,7 @@ public class MemoryDataAccess implements DataAccess {
      */
     public void registerUser(UserData userData) {
         userData = new UserData(userData.username(), userData.password(), userData.email());
-        users.put(userData.username(), userData);
+        USERS.put(userData.username(), userData);
     }
 
     /**
@@ -75,7 +75,7 @@ public class MemoryDataAccess implements DataAccess {
      */
     public String generateAuthToken(String username) {
         String token = UUID.randomUUID().toString();
-        authTokens.put(token, username);
+        AUTH_TOKENS.put(token, username);
         return token;
     }
 
@@ -84,7 +84,7 @@ public class MemoryDataAccess implements DataAccess {
      * @param authToken The auth token to be removed
      */
     public void logout(String authToken) {
-        authTokens.remove(authToken);
+        AUTH_TOKENS.remove(authToken);
     }
 
     /**
@@ -96,9 +96,9 @@ public class MemoryDataAccess implements DataAccess {
         int gameID;
         do {
             gameID = 1000 + random.nextInt(9000);
-        } while (gameInfo.containsKey(gameID));
+        } while (GAME_INFO.containsKey(gameID));
         var gameData = new GameData(gameID, null, null, gameName, new ChessGame());
-        gameInfo.put(gameID, gameData);
+        GAME_INFO.put(gameID, gameData);
         return gameID;
     }
 
@@ -107,7 +107,7 @@ public class MemoryDataAccess implements DataAccess {
      * @return the game with the ID
      */
     public GameData getGameByID(int gameID) {
-        return gameInfo.get(gameID);
+        return GAME_INFO.get(gameID);
     }
 
     /**
@@ -118,7 +118,7 @@ public class MemoryDataAccess implements DataAccess {
      * @throws DataAccessException if a game does not exist with the ID
      */
     public void addUserToGame(String userName, int gameID, String playerColor) throws DataAccessException {
-        GameData game = gameInfo.get(gameID);
+        GameData game = GAME_INFO.get(gameID);
         if (game == null) {
             throw new DataAccessException("Game not found");
         }
@@ -128,34 +128,34 @@ public class MemoryDataAccess implements DataAccess {
         } else {
             gameData = new GameData(game.gameID(), userName, game.blackUsername(), game.gameName(), game.game());
         }
-        gameInfo.put(gameData.gameID(), gameData);
+        GAME_INFO.put(gameData.gameID(), gameData);
     }
 
     /**
      * @return A collection of all games
      */
     public Collection<GameData> getGames() {
-        return gameInfo.values();
+        return GAME_INFO.values();
     }
 
     /**
      * removes all data from the Users hashMap
      */
     public void clearUserData() {
-        users.clear();
+        USERS.clear();
     }
 
     /**
      * removes all data from the gameInfo hashMap
      */
     public void clearAuthData() {
-        gameInfo.clear();
+        GAME_INFO.clear();
     }
 
     /**
      * removes all data from the authTokens hashMap
      */
     public void clearGameData() {
-        authTokens.clear();
+        AUTH_TOKENS.clear();
     }
 }

@@ -13,7 +13,7 @@ public interface DataAccess {
     void clearGameData() throws DataAccessException;
     void logout(String authToken) throws  DataAccessException;;
     AuthData getAuthDataByAuthToken(String authToken) throws DataAccessException;
-    boolean authTokenExists(String AuthToken) throws DataAccessException;
+    boolean authTokenExists(String authToken) throws DataAccessException;
     int createGame(String gameName) throws DataAccessException;
     GameData getGameByID(int gameID) throws DataAccessException;
     void addUserToGame(String userName, int gameID, String playerColor) throws DataAccessException;
