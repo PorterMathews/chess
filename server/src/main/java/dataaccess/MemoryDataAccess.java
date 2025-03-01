@@ -79,10 +79,10 @@ public class MemoryDataAccess implements DataAccess {
             throw new DataAccessException("Error: Game not found");
         }
         GameData gameData;
-
-        if (playerColor.equals("black")) {
+        String lowerCasePlayerColor = playerColor.toLowerCase();
+        if (lowerCasePlayerColor.equals("black")) {
             gameData = new GameData(game.gameID(), game.whiteUsername(), authData.username(), game.gameName(), game.game());
-        } else if (playerColor.equals("white")) {
+        } else if (lowerCasePlayerColor.equals("white")) {
             gameData = new GameData(game.gameID(), authData.username(), game.blackUsername(), game.gameName(), game.game());
         } else {
             throw new DataAccessException("Error: bad request");
