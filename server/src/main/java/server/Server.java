@@ -139,8 +139,17 @@ public class Server {
         try {
             String authToken = req.headers("Authorization");
             JsonObject jsonObject = JsonParser.parseString(req.body()).getAsJsonObject();
-            String playerColor = jsonObject.get("playerColor").getAsString();
-            int gameID = jsonObject.get("gameID").getAsInt();
+            String playerColor;
+            int gameID;
+
+            try {
+                playerColor = jsonObject.get("playerColor").getAsString();
+                gameID = jsonObject.get("gameID").getAsInt();
+            } catch(Exception error) {
+                res.status(400);
+                return new Gson().toJson(Map.of("message", "Error: bad request"));
+            }
+
             gameService.joinGame(authToken, playerColor, gameID);
             res.status(200);
             return "";
@@ -150,7 +159,7 @@ public class Server {
             } else if (error.getMessage().equals("Error: Username already taken")) {
                 res.status(403);
             } else if (error.getMessage().equals("Error: bad request")) {
-                res.status(403);
+                res.status(400);
             }
             return new Gson().toJson(Map.of("message", error.getMessage()));
         }  catch (Exception error) {
