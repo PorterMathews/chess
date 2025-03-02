@@ -1,19 +1,11 @@
 package service;
 
-import chess.ChessGame;
 import dataaccess.DataAccess;
 import dataaccess.DataAccessException;
 import dataaccess.MemoryDataAccess;
 import org.junit.jupiter.api.*;
 import model.*;
-import passoff.model.*;
-import dataaccess.MemoryDataAccess;
-import server.Server;
-import java.net.HttpURLConnection;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Comparator;
-import java.util.Locale;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
@@ -65,13 +57,13 @@ public class ServiceTests {
     }
 
     @Test
-    public void testRegister_Success() {
+    public void testRegisterSuccess() {
         assertNotNull(existingAuth);
         assertEquals("ExistingUser", existingUser.username());
     }
 
     @Test
-    public void testRegister_NullPassword() throws DataAccessException {
+    public void testRegisterNullPassword() throws DataAccessException {
         UserData user = new UserData("User", null, "e@email.com");
         Exception exception = assertThrows(DataAccessException.class, () -> {
             userService.register(user);
@@ -81,14 +73,14 @@ public class ServiceTests {
     }
 
     @Test
-    public void testLogin_Success() throws DataAccessException {
+    public void testLoginSuccess() throws DataAccessException {
         AuthData authData = userService.login(existingUser);
         assertEquals(authData.username(), existingUser.username());
         assertNotNull(authData.authToken());
     }
 
     @Test
-    public void testLogin_NotRegistered() {
+    public void testLoginNotRegistered() {
         Exception exception = assertThrows(DataAccessException.class, () -> {
             userService.login(newUser);
         });
@@ -96,13 +88,13 @@ public class ServiceTests {
     }
 
     @Test
-    public void testLogout_Success() throws DataAccessException {
+    public void testLogoutSuccess() throws DataAccessException {
         userService.logout(existingAuth);
         assertNull(dataAccess.getAuthDataByAuthToken(existingAuth));
     }
 
     @Test
-    public void testLogout_Null() {
+    public void testLogoutNull() {
         Exception exception = assertThrows(DataAccessException.class, () -> {
             userService.logout(null);
         });
@@ -110,14 +102,14 @@ public class ServiceTests {
     }
 
     @Test
-    public void testCreateGame_Success() throws DataAccessException {
+    public void testCreateGameSuccess() throws DataAccessException {
         assertTrue(dataAccess.getGames().isEmpty());
         gameService.createGame(existingAuth, "testGame");
         assertFalse(dataAccess.getGames().isEmpty());
     }
 
     @Test
-    public void testCreateGame_NoAuth() {
+    public void testCreateGameNoAuth() {
         Exception exception = assertThrows(DataAccessException.class, () -> {
             gameService.createGame(null, "awesomeGame");
         });
@@ -125,7 +117,7 @@ public class ServiceTests {
     }
 
     @Test
-    public void testCreateGame_NoName() {
+    public void testCreateGameNoName() {
         Exception exception = assertThrows(DataAccessException.class, () -> {
             gameService.createGame(existingAuth, null);
         });
@@ -133,7 +125,7 @@ public class ServiceTests {
     }
 
     @Test
-    public void testJoinGame_Success() throws DataAccessException{
+    public void testJoinGameSuccess() throws DataAccessException{
         assertTrue(dataAccess.getGames().isEmpty());
         int gameID = gameService.createGame(existingAuth, "testGame");
         gameService.joinGame(existingAuth, "BLACK", gameID);
@@ -143,7 +135,7 @@ public class ServiceTests {
     }
 
     @Test
-    public void testJoinGame_NoAuth() throws DataAccessException {
+    public void testJoinGameNoAuth() throws DataAccessException {
         assertTrue(dataAccess.getGames().isEmpty());
         int gameID = gameService.createGame(existingAuth, "testGame");
         Exception exception = assertThrows(DataAccessException.class, () -> {
@@ -153,7 +145,7 @@ public class ServiceTests {
     }
 
     @Test
-    public void testJoinGame_BadGameID() throws DataAccessException {
+    public void testJoinGameBadGameID() throws DataAccessException {
         assertTrue(dataAccess.getGames().isEmpty());
         Exception exception = assertThrows(DataAccessException.class, () -> {
             gameService.joinGame(existingAuth, "BLACK", 1234);
@@ -162,7 +154,7 @@ public class ServiceTests {
     }
 
     @Test
-    public void testJoinGame_BadColor() throws DataAccessException {
+    public void testJoinGameBadColor() throws DataAccessException {
         assertTrue(dataAccess.getGames().isEmpty());
         int gameID = gameService.createGame(existingAuth, "testGame");
         Exception exception = assertThrows(DataAccessException.class, () -> {
@@ -172,7 +164,7 @@ public class ServiceTests {
     }
 
     @Test
-    public void testGetGames_Success() throws DataAccessException {
+    public void testGetGamesSuccess() throws DataAccessException {
         assertTrue(dataAccess.getGames().isEmpty());
         gameService.createGame(existingAuth, "testGame");
         Collection<GameData> game1Data = gameService.getGames(existingAuth);
@@ -184,7 +176,7 @@ public class ServiceTests {
     }
 
     @Test
-    public void testGameGets_NoAuth() throws DataAccessException {
+    public void testGameGetNoAuth() throws DataAccessException {
         Exception exception = assertThrows(DataAccessException.class, () -> {
             gameService.getGames(null);
         });
