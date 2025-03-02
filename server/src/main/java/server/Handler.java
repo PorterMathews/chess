@@ -194,7 +194,7 @@ public class Handler {
             return new Gson().toJson(Map.of("games", gameData));
         }
         catch(DataAccessException error) {
-            if (error.getMessage().equals("Unauthorized")) {
+            if (error.getMessage().equals("Unauthorized to Get Game")) {
                 res.status(401);
             } return new Gson().toJson(Map.of("message","Error: "+ error.getMessage()));
         }

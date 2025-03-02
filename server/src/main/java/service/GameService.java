@@ -15,6 +15,9 @@ public class GameService {
         if (!dataAccess.authTokenExists(authToken)) {
             throw new DataAccessException("Unauthorized to Create Game");
         }
+        if (gameName == null) {
+            throw new DataAccessException("bad request");
+        }
         return dataAccess.createGame(gameName);
     }
 
@@ -48,7 +51,7 @@ public class GameService {
 
     public Collection<GameData> getGames(String authToken) throws DataAccessException{
         if (!dataAccess.authTokenExists(authToken)) {
-            throw new DataAccessException("Unauthorized");
+            throw new DataAccessException("Unauthorized to Get Game");
         }
         return dataAccess.getGames();
     }
