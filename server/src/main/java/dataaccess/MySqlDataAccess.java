@@ -1,5 +1,6 @@
 package dataaccess;
 
+import chess.ChessGame;
 import com.google.gson.Gson;
 import model.*;
 import org.eclipse.jetty.server.Authentication;
@@ -8,12 +9,14 @@ import org.mindrot.jbcrypt.BCrypt;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.sql.*;
+import java.util.Random;
 import java.util.UUID;
 
 import static java.sql.Statement.RETURN_GENERATED_KEYS;
 import static java.sql.Types.NULL;
 
 public class MySqlDataAccess implements DataAccess {
+    private final Random random = new Random();
 
     public MySqlDataAccess throws DataAccessException {
         configureDatabase();
@@ -79,7 +82,35 @@ public class MySqlDataAccess implements DataAccess {
         updateData(statement, authToken);
     }
 
-    private AuthData getAuthDataFromDatabase (String authToken) throws DataAccessException {
+    public int createGame(String gameName) throws DataAccessException {
+        int gameID;
+        do {
+            gameID = 1000 + random.nextInt(9000);
+        } while (isGameIDInDatabase(gameID));
+        String statement = "INSERT INTO GameData (gameID, whiteUsername, blackUsername, gameName, chessGame) VALUES (?, ?, ?, ?, ?)";
+        var chessGame = new Gson().toJson(new ChessGame());
+        updateData(statement, gameID, null, null, gameName, chessGame);
+        return gameID;
+    }
+
+    private boolean isGameIDInDatabase(int gameID) throws DataAccessException {
+        try (var conn = DatabaseManager.getConnection()) {
+            var statement = "SELECT * FROM GameData WHERE gameID = ?";
+            try (var ps = conn.prepareStatement(statement)) {
+                ps.setInt(1, gameID);
+                try (var rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        return true;
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException(String.format("unable to read data: %s", e.getMessage()));
+        }
+        return false;
+    }
+
+    private AuthData getAuthDataFromDatabase(String authToken) throws DataAccessException {
         try (var conn = DatabaseManager.getConnection()) {
             var statement = "SELECT username FROM AuthData WHERE authToken = ?";
             try (var ps = conn.prepareStatement(statement)) {
