@@ -3,23 +3,22 @@ package dataaccess;
 import chess.ChessGame;
 import com.google.gson.Gson;
 import model.*;
-import org.eclipse.jetty.server.Authentication;
 import org.mindrot.jbcrypt.BCrypt;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.*;
 import java.sql.*;
-import java.util.Random;
-import java.util.UUID;
 
-import static java.sql.Statement.RETURN_GENERATED_KEYS;
 import static java.sql.Types.NULL;
 
 public class MySqlDataAccess implements DataAccess {
     private final Random random = new Random();
 
-    public MySqlDataAccess throws DataAccessException {
-        configureDatabase();
+    public MySqlDataAccess() throws DataAccessException {
+        try {
+            configureDatabase();
+        } catch (DataAccessException e) {
+            throw new DataAccessException("Unable to configure Database");
+        }
     }
 
     public void clearUserData() throws DataAccessException{
@@ -77,6 +76,10 @@ public class MySqlDataAccess implements DataAccess {
         return getAuthDataFromDatabase(authToken);
     }
 
+    public boolean authTokenExists(String authToken) throws DataAccessException {
+        return Objects.equals(authToken, getAuthToken(authToken));
+    }
+
     public void logout(String authToken) throws DataAccessException {
         String statement = "DELETE FROM AuthData WHERE authToken = ?";
         updateData(statement, authToken);
@@ -111,6 +114,37 @@ public class MySqlDataAccess implements DataAccess {
         updateData(statement, userName, gameID);
     }
 
+    public Collection<GameData> getGames() throws DataAccessException {
+        return getAllGamesFromDatabase();
+    }
+
+    private GameData readGame(ResultSet rs) throws SQLException {
+        var gameID = rs.getInt("gameID");
+        var whiteUsername = rs.getString("whiteUsername");
+        var blackUsername = rs.getString("blackUsername");
+        var gameName = rs.getString("gameName");
+        var chessGameJson = rs.getString("chessGame");
+        var chessGame = new Gson().fromJson(chessGameJson, ChessGame.class);
+        return new GameData(gameID, whiteUsername, blackUsername, gameName, chessGame);
+    }
+
+    private Collection<GameData> getAllGamesFromDatabase() throws DataAccessException {
+        var result = new ArrayList<GameData>();
+        try (var conn = DatabaseManager.getConnection()) {
+            var statement = "SELECT gameID, whiteUsername, blackUsername, gameName, chessGame FROM GameData";
+            try (var ps = conn.prepareStatement(statement)) {
+                try (var rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        result.add(readGame(rs));
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException(String.format("unable to read data: %s", e.getMessage()));
+        }
+        return result;
+    }
+
     private GameData getGameFromDatabaseByID(int gameID) throws DataAccessException {
         try (var conn = DatabaseManager.getConnection()) {
             var statement = "SELECT * FROM GameData WHERE gameID = ?";
@@ -118,12 +152,7 @@ public class MySqlDataAccess implements DataAccess {
                 ps.setInt(1, gameID);
                 try (var rs = ps.executeQuery()) {
                     if (rs.next()) {
-                        var whiteUsername = rs.getString("whiteUsername");
-                        var blackUsername = rs.getString("blackUsername");
-                        var gameName = rs.getString("gameName");
-                        var chessGameJson = rs.getString("chessGame");
-                        var chessGame = new Gson().fromJson(chessGameJson, ChessGame.class);
-                        return new GameData(gameID, whiteUsername, blackUsername, gameName, chessGame);
+                        return readGame(rs);
                     }
                 }
             }
@@ -148,6 +177,23 @@ public class MySqlDataAccess implements DataAccess {
             throw new DataAccessException(String.format("unable to read data: %s", e.getMessage()));
         }
         return false;
+    }
+
+    private String getAuthToken(String authToken) throws DataAccessException {
+        try (var conn = DatabaseManager.getConnection()) {
+            var statement = "SELECT authToken FROM AuthData WHERE authToken = ?";
+            try (var ps = conn.prepareStatement(statement)) {
+                ps.setString(1, authToken);
+                try (var rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        return rs.getString("authToken");
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException(String.format("unable to read data: %s", e.getMessage()));
+        }
+        return null;
     }
 
     private AuthData getAuthDataFromDatabase(String authToken) throws DataAccessException {
@@ -186,9 +232,8 @@ public class MySqlDataAccess implements DataAccess {
 
     private UserData readUser(ResultSet rs) throws SQLException {
         var username = rs.getString("username");
-        var password = rs.getString("password");
         var email = rs.getString("email");
-        return new UserData(username, password, email);
+        return new UserData(username, null, email);
     }
 
     private Collection<UserData> listUsers() throws DataAccessException {
