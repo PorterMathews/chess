@@ -97,6 +97,20 @@ public class MySqlDataAccess implements DataAccess {
         return getGameFromDatabaseByID(gameID);
     }
 
+    public void addUserToGame(String userName, int gameID, String playerColor) throws DataAccessException {
+        GameData gameData = getGameFromDatabaseByID(gameID);
+        if (gameData == null) {
+            throw new DataAccessException("Game not found");
+        }
+        String statement;
+        if (playerColor.equals("black")) {
+            statement = "UPDATE GameData SET blackUsername = ? WHERE gameID = ?";
+        } else {
+            statement = "UPDATE GameData SET whiteUsername = ? WHERE gameID = ?";
+        }
+        updateData(statement, userName, gameID);
+    }
+
     private GameData getGameFromDatabaseByID(int gameID) throws DataAccessException {
         try (var conn = DatabaseManager.getConnection()) {
             var statement = "SELECT * FROM GameData WHERE gameID = ?";
