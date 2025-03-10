@@ -7,7 +7,7 @@ import java.util.Collection;
 public interface DataAccess {
     void registerUser(UserData u) throws DataAccessException;
     boolean isUserInDB(String userName) throws DataAccessException;
-    String getPassword(UserData u) throws DataAccessException;
+    boolean checkPassword(UserData u) throws DataAccessException;
     Collection<UserData> getUsers() throws DataAccessException;
     void clearUserData() throws DataAccessException;
     void clearAuthData() throws DataAccessException;

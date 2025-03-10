@@ -40,7 +40,7 @@ public class UserService {
             throw new DataAccessException("Unauthorized");
         }
 
-        if (!u.password().equals(dataAccess.getPassword(u))) {
+        if (!dataAccess.checkPassword(u)) {
             throw new DataAccessException("Unauthorized");
         }
 

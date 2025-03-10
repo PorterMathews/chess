@@ -32,12 +32,12 @@ public class MemoryDataAccess implements DataAccess {
      * @return the password for the user
      * @throws DataAccessException if the user doesn't exist
      */
-    public String getPassword(UserData u) throws DataAccessException {
+    public boolean checkPassword(UserData u) throws DataAccessException {
         UserData user = USERS.get(u.username());
         if (user == null) {
             throw new DataAccessException("Unauthorized");
         }
-        return user.password();
+        return user.password().equals(u.password());
     }
 
     /**
@@ -54,8 +54,6 @@ public class MemoryDataAccess implements DataAccess {
      * @return true if the authToken exists
      */
     public boolean authTokenExists(String authToken) {
-        //System.out.println("Checking auth token: " + authToken);
-        //System.out.println("Current auth tokens: " + authTokens);
         return AUTH_TOKENS.containsKey(authToken);
     }
 
