@@ -93,6 +93,32 @@ public class MySqlDataAccess implements DataAccess {
         return gameID;
     }
 
+    public GameData getGameByID(int gameID) throws DataAccessException {
+        return getGameFromDatabaseByID(gameID);
+    }
+
+    private GameData getGameFromDatabaseByID(int gameID) throws DataAccessException {
+        try (var conn = DatabaseManager.getConnection()) {
+            var statement = "SELECT * FROM GameData WHERE gameID = ?";
+            try (var ps = conn.prepareStatement(statement)) {
+                ps.setInt(1, gameID);
+                try (var rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        var whiteUsername = rs.getString("whiteUsername");
+                        var blackUsername = rs.getString("blackUsername");
+                        var gameName = rs.getString("gameName");
+                        var chessGameJson = rs.getString("chessGame");
+                        var chessGame = new Gson().fromJson(chessGameJson, ChessGame.class);
+                        return new GameData(gameID, whiteUsername, blackUsername, gameName, chessGame);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException(String.format("unable to read data: %s", e.getMessage()));
+        }
+        return null;
+    }
+
     private boolean isGameIDInDatabase(int gameID) throws DataAccessException {
         try (var conn = DatabaseManager.getConnection()) {
             var statement = "SELECT * FROM GameData WHERE gameID = ?";
