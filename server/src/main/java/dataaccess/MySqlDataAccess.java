@@ -70,7 +70,31 @@ public class MySqlDataAccess implements DataAccess {
         return BCrypt.checkpw(u.password(), hashedPassword);
     }
 
-    
+    public AuthData getAuthDataByAuthToken(String authToken) throws DataAccessException {
+        return getAuthDataFromDatabase(authToken);
+    }
+
+    public void logout(String authToken) throws DataAccessException {
+        String statement = "DELETE FROM AuthData WHERE authToken = ?";
+        updateData(statement, authToken);
+    }
+
+    private AuthData getAuthDataFromDatabase (String authToken) throws DataAccessException {
+        try (var conn = DatabaseManager.getConnection()) {
+            var statement = "SELECT username FROM AuthData WHERE authToken = ?";
+            try (var ps = conn.prepareStatement(statement)) {
+                ps.setString(1, authToken);
+                try (var rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        return new AuthData(authToken, (rs.getString("username")));
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException(String.format("unable to read data: %s", e.getMessage()));
+        }
+        return null;
+    }
 
     private String readHashedPasswordFromDatabase(String username) throws DataAccessException {
         try (var conn = DatabaseManager.getConnection()) {
@@ -83,10 +107,10 @@ public class MySqlDataAccess implements DataAccess {
                     }
                 }
             }
-            return null;
         } catch (SQLException e) {
             throw new DataAccessException(String.format("unable to read data: %s", e.getMessage()));
         }
+        return null;
     }
 
     private UserData readUser(ResultSet rs) throws SQLException {
