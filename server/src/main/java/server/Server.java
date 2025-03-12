@@ -1,5 +1,6 @@
 package server;
 
+import dataaccess.DataAccess;
 import dataaccess.MemoryDataAccess;
 import service.Service;
 import service.UserService;
@@ -13,9 +14,13 @@ public class Server {
     private final Handler handler;
 
     public Server() {
-        this.service = new Service(new MemoryDataAccess());
-        this.userService = new UserService(new MemoryDataAccess());
-        this.gameService = new GameService(new MemoryDataAccess());
+        this(new MemoryDataAccess());
+    }
+
+    public Server(DataAccess dataAccess) {
+        this.service = new Service(dataAccess);
+        this.userService = new UserService(dataAccess);
+        this.gameService = new GameService(dataAccess);
         this.handler = new Handler(service, userService, gameService);
     }
 
