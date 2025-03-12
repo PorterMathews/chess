@@ -4,9 +4,9 @@ import dataaccess.*;
 import model.*;
 
 public class UserService {
-    private final DataAccess dataAccess;
+    private final UserDAO dataAccess;
 
-    public UserService(DataAccess dataAccess) {
+    public UserService(UserDAO dataAccess) {
         this.dataAccess = dataAccess;
     }
 
@@ -46,19 +46,5 @@ public class UserService {
 
         String authToken = ((MemoryDataAccess) dataAccess).generateAuthToken(u.username());
         return new AuthData(authToken, u.username());
-    }
-
-
-    /**
-     *
-     * @param authToken the authToken to be removed
-     * @throws DataAccessException If the authToken doesn't exist or is wrong
-     */
-    public void logout(String authToken) throws DataAccessException {
-        if (!dataAccess.authTokenExists(authToken)) {
-            throw new DataAccessException("Unauthorized Token");
-        }
-
-        dataAccess.logout(authToken);
     }
 }

@@ -1,8 +1,6 @@
 package server;
 
-import dataaccess.DataAccess;
-import dataaccess.DataAccessException;
-import dataaccess.MemoryDataAccess;
+import dataaccess.*;
 import service.Service;
 import service.UserService;
 import service.GameService;
@@ -18,11 +16,11 @@ public class Server {
         try {
             var userDAO = new SQLUserDAO();
             var authDAO = new SQLAuthDAO();
-            var gameDAI = new SQLGameDAO();
+            var gameDAO = new SQLGameDAO();
 
-            this.service = new Service(UserDAO, AuthDAO, GameDAO);
-            this.userService = new UserService(dataAUserDAO, AuthDAO, GameDAOccess);
-            this.gameService = new GameService(dataAccUserDAO, AuthDAO, GameDAOess);
+            this.service = new Service(userDAO, authDAO, gameDAO);
+            this.userService = new UserService(userDAO);
+            this.gameService = new GameService(userDAO, authDAO, gameDAO);
 
         } catch (RuntimeException e) {
             throw new RuntimeException("Server failed to initialize due to error", e);
@@ -37,7 +35,7 @@ public class Server {
         Spark.delete("/db", Service::clearDatabase);
         Spark.post("/user", UserService::register);
         Spark.post("/session", UserService::login);
-        Spark.delete("/session", UserService::logout);
+        Spark.delete("/session", Service::logout);
         Spark.post("/game", GameService::createGame);
         Spark.put("/game", GameService::joinGame);
         Spark.get("/game", GameService::getGames);

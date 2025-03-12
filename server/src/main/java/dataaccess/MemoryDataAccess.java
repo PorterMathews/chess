@@ -144,16 +144,16 @@ public class MemoryDataAccess implements DataAccess {
     }
 
     /**
-     * removes all data from the gameInfo hashMap
+     * removes all data from the AuthTokens hashMap
      */
     public void clearAuthData() {
-        GAME_INFO.clear();
+        AUTH_TOKENS.clear();
     }
 
     /**
-     * removes all data from the authTokens hashMap
+     * removes all data from the GameInfo hashMap
      */
     public void clearGameData() {
-        AUTH_TOKENS.clear();
+        GAME_INFO.clear();
     }
 }

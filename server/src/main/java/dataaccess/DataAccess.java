@@ -12,7 +12,7 @@ public interface DataAccess {
     void clearUserData() throws DataAccessException;
     void clearAuthData() throws DataAccessException;
     void clearGameData() throws DataAccessException;
-    void logout(String authToken) throws  DataAccessException;;
+    void logout(String authToken) throws  DataAccessException;
     AuthData getAuthDataByAuthToken(String authToken) throws DataAccessException;
     boolean authTokenExists(String authToken) throws DataAccessException;
     int createGame(String gameName) throws DataAccessException;
