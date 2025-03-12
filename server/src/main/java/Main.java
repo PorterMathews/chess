@@ -10,13 +10,17 @@ public class Main {
     //start on port 8080
     public static void main(String[] args) {
         try {
-            var port = 8080;
-            if (args.length >= 1) {
-                port = Integer.parseInt(args[0]);
+
+            DataAccess dataAccess = new MemoryDataAccess();
+            if (args.length >= 2 && args[1].equals("sql")) {
+                dataAccess = new MySqlDataAccess();
             }
-            DataAccess dataAccess = new MySqlDataAccess();
-            var server = new Server(dataAccess).run(port);
-            port = server;
+
+            var server = new Server();
+            int port = server.run(8080);  // ✅ Keep this as 8080 for HTTP
+            System.out.printf("Server started on port %d%n", port);
+
+
             System.out.printf("Server started on port %d with %s%n", port, dataAccess.getClass());
             return;
         } catch (Throwable ex) {
