@@ -8,7 +8,7 @@ import model.GameData;
 import model.UserData;
 import spark.Request;
 import spark.Response;
-import service.Service;
+import service.AuthService;
 import service.UserService;
 import service.GameService;
 import java.util.Collection;
@@ -16,15 +16,9 @@ import java.util.Map;
 
 public class Handler {
 
-    private final UserService userService;
-    private final GameService gameService;
-    private final Service service;
-
-    public Handler(Service service, UserService userService, GameService gameService) {
-        this.service = service;
-        this.userService = userService;
-        this.gameService = gameService;
-    }
+    private final UserService userService = new UserService();
+    private final GameService gameService = new GameService();
+    private final AuthService authService = new AuthService();
 
     /**
      * @param req the incoming request
@@ -33,7 +27,7 @@ public class Handler {
      */
     public Object clearDatabase(Request req, Response res) {
         try {
-            service.clearDatabase();
+            authService.clearDatabase();
             res.status(200);
             return "";
         }

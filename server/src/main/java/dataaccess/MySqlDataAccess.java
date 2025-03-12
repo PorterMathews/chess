@@ -273,6 +273,9 @@ public class MySqlDataAccess implements DataAccess {
         }
     }
 
+    /**
+     * The table create statements
+     */
     private final String[] createStatements = {
             """
             CREATE TABLE IF NOT EXISTS  UserData (
@@ -304,6 +307,10 @@ public class MySqlDataAccess implements DataAccess {
             """
     };
 
+    /**
+     * configures data
+     * @throws DataAccessException
+     */
     private void configureDatabase() throws DataAccessException {
         DatabaseManager.createDatabase();
         try (var conn = DatabaseManager.getConnection()) {

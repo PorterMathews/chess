@@ -1,9 +1,7 @@
-import chess.*;
 import dataaccess.DataAccess;
 import dataaccess.MemoryDataAccess;
 import dataaccess.MySqlDataAccess;
 import server.Server;
-import service.Service;
 
 public class Main {
 
@@ -17,9 +15,8 @@ public class Main {
             }
 
             var server = new Server();
-            int port = server.run(8080);  // ✅ Keep this as 8080 for HTTP
+            int port = server.run(8080);
             System.out.printf("Server started on port %d%n", port);
-
 
             System.out.printf("Server started on port %d with %s%n", port, dataAccess.getClass());
             return;

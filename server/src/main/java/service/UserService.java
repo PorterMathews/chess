@@ -4,11 +4,8 @@ import dataaccess.*;
 import model.*;
 
 public class UserService {
-    private final UserDAO dataAccess;
-
-    public UserService(UserDAO dataAccess) {
-        this.dataAccess = dataAccess;
-    }
+    private AuthDAO authDAO = new MemoryAuthDAO();
+    private UserDAO userDAO = new MemoryUserDAO();
 
     /**
      * @param u The user's data
@@ -20,12 +17,12 @@ public class UserService {
             throw new DataAccessException("Bad request");
         }
 
-        if (dataAccess.isUserInDB(u.username())) {
+        if (userDAO.isUserInDB(u.username())) {
             throw new DataAccessException("Username already taken");
         }
 
-        dataAccess.registerUser(u);
-        String authToken = ((MemoryDataAccess) dataAccess).generateAuthToken(u.username());
+        userDAO.registerUser(u);
+        String authToken = ((MemoryAuthDAO) authDAO).generateAuthToken(u.username());
         return new AuthData(authToken, u.username());
     }
 
@@ -40,11 +37,21 @@ public class UserService {
             throw new DataAccessException("Unauthorized");
         }
 
-        if (!dataAccess.checkPassword(u)) {
+        if (!userDAO.checkPassword(u)) {
             throw new DataAccessException("Unauthorized");
         }
 
-        String authToken = ((MemoryDataAccess) dataAccess).generateAuthToken(u.username());
+        String authToken = ((MemoryAuthDAO) authDAO).generateAuthToken(u.username());
         return new AuthData(authToken, u.username());
     }
+
+
+    public void logout(String authToken) throws DataAccessException {
+        if (!authDAO.authTokenExists(authToken)) {
+            throw new DataAccessException("Unauthorized Token");
+        }
+        authDAO.logout(authToken);
+    }
+
+
 }
