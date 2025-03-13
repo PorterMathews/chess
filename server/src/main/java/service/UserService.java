@@ -38,10 +38,13 @@ public class UserService {
      * @throws DataAccessException if the password and username are wrong
      */
     public AuthData login(UserData u) throws DataAccessException {
+        System.out.println("Starting log in with: " + u);
         if (u.password() == null || u.username() == null){
             throw new DataAccessException("Unauthorized");
         }
-
+        System.out.println("userDAO: " + userDAO);
+        System.out.println("Checking password...");
+        System.out.println("Using DAO: " + userDAO.getClass().getSimpleName());
         if (!userDAO.checkPassword(u)) {
             throw new DataAccessException("Unauthorized");
         }

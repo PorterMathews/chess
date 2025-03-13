@@ -29,6 +29,7 @@ public class SQLUserDAO implements UserDAO {
      * @return The data for the user
      */
     public void registerUser(UserData userData) throws DataAccessException {
+        System.out.println("Register SQL");
         String hashedPassword = BCrypt.hashpw(userData.password(), BCrypt.gensalt());
         String statement = "INSERT INTO UserData (username, password, email) VALUES (?, ?, ?)";
         updateData(statement, userData.username(), hashedPassword, userData.email());
@@ -66,7 +67,12 @@ public class SQLUserDAO implements UserDAO {
      * @throws DataAccessException
      */
     public boolean checkPassword(UserData u) throws DataAccessException {
+        //System.out.println("Checking password SQL");
         var hashedPassword = readHashedPasswordFromDatabase(u.username());
+        //System.out.println("Checking passwords: \nUser: " + u.password() + "\nHashed: " + hashedPassword);
+        if (hashedPassword == null) {
+            return false;
+        }
         return BCrypt.checkpw(u.password(), hashedPassword);
     }
 

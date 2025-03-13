@@ -29,7 +29,9 @@ public class MemoryUserDAO implements UserDAO {
      * @throws DataAccessException if the user doesn't exist
      */
     public boolean checkPassword(UserData u) throws DataAccessException {
+        System.out.println("Finding user...");
         UserData user = USERS.get(u.username());
+        System.out.println("user is: " + user);
         if (user == null) {
             throw new DataAccessException("Unauthorized");
         }
@@ -41,6 +43,7 @@ public class MemoryUserDAO implements UserDAO {
      * @return The data for the user
      */
     public void registerUser(UserData userData) {
+        System.out.println("Register Mem");
         userData = new UserData(userData.username(), userData.password(), userData.email());
         USERS.put(userData.username(), userData);
     }
