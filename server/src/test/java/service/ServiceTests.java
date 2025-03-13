@@ -8,9 +8,9 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
 public class ServiceTests {
-    private final UserService userService = new UserService();
-    private final GameService gameService = new GameService();
-    private final AuthService authService = new AuthService();
+    private final UserService userService = new UserService(new MemoryAuthDAO(), new MemoryUserDAO());
+    private final GameService gameService = new GameService(new MemoryAuthDAO(), new MemoryGameDAO());
+    private final AuthService authService = new AuthService(new MemoryAuthDAO(), new MemoryUserDAO(), new MemoryGameDAO());
     private final GameDAO gameDAO = new MemoryGameDAO();
     private final AuthDAO authDAO = new MemoryAuthDAO();
     private final UserDAO userDAO = new MemoryUserDAO();

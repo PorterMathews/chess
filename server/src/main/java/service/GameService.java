@@ -5,8 +5,13 @@ import model.*;
 
 import java.util.Collection;
 public class GameService {
-        private GameDAO gameDAO = new MemoryGameDAO();
-        private AuthDAO authDAO = new MemoryAuthDAO();
+        private final GameDAO gameDAO;
+        private final AuthDAO authDAO;
+
+        public GameService(AuthDAO authDAO, GameDAO gameDAO) {
+            this.authDAO = authDAO;
+            this.gameDAO = gameDAO;
+        }
 
     public int createGame(String authToken, String gameName) throws DataAccessException {
         if (!authDAO.authTokenExists(authToken)) {

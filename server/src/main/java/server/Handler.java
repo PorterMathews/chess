@@ -3,7 +3,7 @@ package server;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import dataaccess.DataAccessException;
+import dataaccess.*;
 import model.GameData;
 import model.UserData;
 import spark.Request;
@@ -16,9 +16,29 @@ import java.util.Map;
 
 public class Handler {
 
-    private final UserService userService = new UserService();
-    private final GameService gameService = new GameService();
-    private final AuthService authService = new AuthService();
+    private final UserService userService;
+    private final GameService gameService;
+    private final AuthService authService;
+
+    public Handler(boolean useSQL) {
+        AuthDAO authDAO;
+        UserDAO userDAO;
+        GameDAO gameDAO;
+
+        if (useSQL) {
+            authDAO = new SQLAuthDAO();
+            userDAO = new SQLUserDAO();
+            gameDAO = new SQLGameDAO();
+        } else {
+            authDAO = new MemoryAuthDAO();
+            userDAO = new MemoryUserDAO();
+            gameDAO = new MemoryGameDAO();
+        }
+
+        this.userService = new UserService(authDAO, userDAO);
+        this.gameService = new GameService(authDAO, gameDAO);
+        this.authService = new AuthService(authDAO, userDAO, gameDAO);
+    }
 
     /**
      * @param req the incoming request

@@ -3,9 +3,15 @@ package service;
 import dataaccess.*;
 
 public class AuthService {
-    private GameDAO gameDAO = new MemoryGameDAO();
-    private AuthDAO authDAO = new MemoryAuthDAO();
-    private UserDAO userDAO = new MemoryUserDAO();
+    private final GameDAO gameDAO;
+    private final AuthDAO authDAO;
+    private final UserDAO userDAO;
+
+    public AuthService(AuthDAO authDAO, UserDAO userDAO, GameDAO gameDAO) {
+        this.authDAO = authDAO;
+        this.userDAO = userDAO;
+        this.gameDAO = gameDAO;
+    }
 
     public void clearDatabase() throws DataAccessException {
         authDAO.clearAuthData();

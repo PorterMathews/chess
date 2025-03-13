@@ -4,8 +4,13 @@ import dataaccess.*;
 import model.*;
 
 public class UserService {
-    private AuthDAO authDAO = new MemoryAuthDAO();
-    private UserDAO userDAO = new MemoryUserDAO();
+    private final AuthDAO authDAO;
+    private final UserDAO userDAO;
+
+    public UserService(AuthDAO authDAO, UserDAO userDAO) {
+        this.authDAO = authDAO;
+        this.userDAO = userDAO;
+    }
 
     /**
      * @param u The user's data
