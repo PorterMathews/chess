@@ -21,8 +21,10 @@ public class SQLGameDAO implements GameDAO {
      * @throws DataAccessException
      */
     public void clearGameData() throws DataAccessException{
+        //System.out.println("Start clearing");
         String statement = "DELETE FROM GameData";
         updateData(statement);
+        //System.out.println("Done Clearing");
     }
 
     /**
@@ -42,6 +44,7 @@ public class SQLGameDAO implements GameDAO {
      * @throws DataAccessException
      */
     public void addUserToGame(String userName, int gameID, String playerColor) throws DataAccessException {
+        System.out.println("Creating user with name: " + userName);
         GameData gameData = getGameFromDatabaseByID(gameID);
         if (gameData == null) {
             throw new DataAccessException("Game not found");
@@ -72,6 +75,8 @@ public class SQLGameDAO implements GameDAO {
      * @throws DataAccessException
      */
     public int createGame(String gameName) throws DataAccessException {
+        //System.out.println("Creating game with name: " + gameName);
+
         int gameID;
         do {
             gameID = 1000 + random.nextInt(9000);
@@ -79,6 +84,9 @@ public class SQLGameDAO implements GameDAO {
         String statement = "INSERT INTO GameData (gameID, whiteUsername, blackUsername, gameName, chessGame) VALUES (?, ?, ?, ?, ?)";
         var chessGame = new Gson().toJson(new ChessGame());
         updateData(statement, gameID, null, null, gameName, chessGame);
+
+        //System.out.println("Game successfully inserted into database!");
+
         return gameID;
     }
 
@@ -185,7 +193,7 @@ public class SQLGameDAO implements GameDAO {
                     else if (param == null) ps.setNull(i + 1, NULL);
                 }
                 ps.executeUpdate();
-                conn.commit();
+                //conn.commit();
             }
         } catch (SQLException e) {
             throw new DataAccessException(String.format("unable to update database: %s, %s", statement, e.getMessage()));

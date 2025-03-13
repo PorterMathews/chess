@@ -27,7 +27,7 @@ public class UserService {
         }
 
         userDAO.registerUser(u);
-        String authToken = ((MemoryAuthDAO) authDAO).generateAuthToken(u.username());
+        String authToken = authDAO.generateAuthToken(u.username());
         return new AuthData(authToken, u.username());
     }
 
@@ -46,7 +46,7 @@ public class UserService {
             throw new DataAccessException("Unauthorized");
         }
 
-        String authToken = ((MemoryAuthDAO) authDAO).generateAuthToken(u.username());
+        String authToken = authDAO.generateAuthToken(u.username());
         return new AuthData(authToken, u.username());
     }
 
@@ -58,5 +58,7 @@ public class UserService {
         authDAO.logout(authToken);
     }
 
-
+    public void clearUserData() throws DataAccessException {
+        userDAO.clearUserData();
+    }
 }

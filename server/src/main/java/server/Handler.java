@@ -49,7 +49,10 @@ public class Handler {
      */
     public Object clearDatabase(Request req, Response res) {
         try {
-            authService.clearDatabase();
+            //System.out.println("Clearing database...");
+            authService.clearAuthData();
+            gameService.clearGameData();
+            userService.clearUserData();
             res.status(200);
             return "";
         }

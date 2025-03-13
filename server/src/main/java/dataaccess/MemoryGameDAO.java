@@ -67,5 +67,6 @@ public class MemoryGameDAO implements GameDAO {
      */
     public void clearGameData() {
         GAME_INFO.clear();
+        System.out.println("Clearing in Mem (wrong)");
     }
 }

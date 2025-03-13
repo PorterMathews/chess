@@ -320,7 +320,7 @@ public class MySqlDataAccess {
         DatabaseManager.createDatabase();
         try (var conn = DatabaseManager.getConnection()) {
             for (var statement : createStatements) {
-                System.out.println("Executing: " + statement);
+                //System.out.println("Executing: " + statement);
                 try (var preparedStatement = conn.prepareStatement(statement)) {
                     preparedStatement.executeUpdate();
                 }

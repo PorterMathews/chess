@@ -12,8 +12,10 @@ public class SQLAuthDAO implements AuthDAO {
      * @throws DataAccessException unable to delete data
      */
     public void clearAuthData() throws DataAccessException{
+        //System.out.println("Clear auth data start");
         String statement = "DELETE FROM AuthData";
         updateData(statement);
+        //System.out.println("Clear auth data finish");
     }
 
     /**
@@ -89,10 +91,11 @@ public class SQLAuthDAO implements AuthDAO {
      */
     private AuthData getAuthDataFromDatabase(String authToken) throws DataAccessException {
         try (var conn = DatabaseManager.getConnection()) {
-            var statement = "SELECT username FROM AuthData WHERE authToken = ?";
+            var statement = "SELECT * FROM AuthData WHERE authToken = ?";
             try (var ps = conn.prepareStatement(statement)) {
                 ps.setString(1, authToken);
                 try (var rs = ps.executeQuery()) {
+                    //System.out.println("grabbed rs: " + rs);
                     if (rs.next()) {
                         return new AuthData(authToken, (rs.getString("username")));
                     }
@@ -111,6 +114,7 @@ public class SQLAuthDAO implements AuthDAO {
      * @throws DataAccessException
      */
     private void updateData(String statement, Object... params) throws DataAccessException {
+        //System.out.println("made it to updateData");
         try (var conn = DatabaseManager.getConnection()) {
             try (var ps = conn.prepareStatement(statement)) {
                 for (var i = 0; i < params.length; i++) {
@@ -122,8 +126,10 @@ public class SQLAuthDAO implements AuthDAO {
                     else if (param instanceof AuthData a) ps.setString(i + 1, a.toString());
                     else if (param == null) ps.setNull(i + 1, NULL);
                 }
+                //System.out.println("made it to executeUpdate");
                 ps.executeUpdate();
-                conn.commit();
+                //conn.commit();
+                //System.out.println("finished updateData");
             }
         } catch (SQLException e) {
             throw new DataAccessException(String.format("unable to update database: %s, %s", statement, e.getMessage()));
