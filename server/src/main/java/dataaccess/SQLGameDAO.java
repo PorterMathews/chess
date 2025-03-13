@@ -4,7 +4,6 @@ import chess.ChessGame;
 import com.google.gson.Gson;
 import model.AuthData;
 import model.GameData;
-import model.UserData;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -187,7 +186,6 @@ public class SQLGameDAO implements GameDAO {
                     var param = params[i];
                     if (param instanceof String p) {ps.setString(i + 1, p);}
                     else if (param instanceof Integer p) {ps.setInt(i + 1, p);}
-                    else if (param instanceof UserData u) {ps.setString(i + 1, u.toString());}
                     else if (param instanceof GameData g) {ps.setString(i + 1, g.toString());}
                     else if (param instanceof AuthData a) {ps.setString(i + 1, a.toString());}
                     else if (param == null) {ps.setNull(i + 1, NULL);}

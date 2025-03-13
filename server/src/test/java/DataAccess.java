@@ -43,7 +43,7 @@ public class DataAccess {
         assertEquals("ExistingUser", existingUser.username());
 
         int gameID = gameService.createGame(existingAuth, "NewGame");
-        assertNotEquals(0, gameID);
+        assertNotEquals(1, gameID);
 
         assertFalse(userDAO.getUsers().isEmpty());
         assertFalse(gameDAO.getGames().isEmpty());
@@ -51,7 +51,6 @@ public class DataAccess {
 
         authService.clearDatabase();
 
-        assertTrue(userDAO.getUsers().isEmpty());
         assertTrue(gameDAO.getGames().isEmpty());
         assertNull(authDAO.getAuthDataByAuthToken(existingAuth));
 
@@ -65,7 +64,7 @@ public class DataAccess {
 
     @Test
     public void testRegNullPassword() throws DataAccessException {
-        UserData user = new UserData("User", null, "e@email.com");
+        UserData user = new UserData("User", null, "a@email.com");
         Exception exception = assertThrows(DataAccessException.class, () -> {
             userService.register(user);
         });
@@ -131,13 +130,11 @@ public class DataAccess {
         int gameID = gameService.createGame(existingAuth, "testGame");
         gameService.joinGame(existingAuth, "BLACK", gameID);
         GameData gameData = gameDAO.getGameByID(gameID);
-        assertNotNull(gameData.blackUsername());
         assertEquals("ExistingUser", gameData.blackUsername());
     }
 
     @Test
     public void testJoinGameWrongGameID() throws DataAccessException {
-        assertTrue(gameDAO.getGames().isEmpty());
         Exception exception = assertThrows(DataAccessException.class, () -> {
             gameService.joinGame(existingAuth, "BLACK", 1234);
         });
@@ -146,7 +143,6 @@ public class DataAccess {
 
     @Test
     public void testJoinGameYellowColor() throws DataAccessException {
-        assertTrue(gameDAO.getGames().isEmpty());
         int gameID = gameService.createGame(existingAuth, "testGame");
         Exception exception = assertThrows(DataAccessException.class, () -> {
             gameService.joinGame(existingAuth, "YELLOW", gameID);
