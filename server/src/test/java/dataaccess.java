@@ -8,7 +8,7 @@ import service.AuthService;
 import service.GameService;
 import service.UserService;
 
-public class DataAccess {
+public class dataaccess {
     private final UserService userService = new UserService(new SQLAuthDAO(), new SQLUserDAO());
     private final GameService gameService = new GameService(new SQLAuthDAO(), new SQLGameDAO());
     private final AuthService authService = new AuthService(new SQLAuthDAO(), new SQLUserDAO(), new SQLGameDAO());
