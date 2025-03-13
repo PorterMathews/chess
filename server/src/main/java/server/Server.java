@@ -5,7 +5,6 @@ import spark.*;
 public class Server {
     private static final boolean USE_SQL = false;
     private final Handler handler = new Handler(USE_SQL);
-
     public int run(int desiredPort) {
         Spark.port(desiredPort);
 

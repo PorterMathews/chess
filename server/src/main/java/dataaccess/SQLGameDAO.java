@@ -185,6 +185,7 @@ public class SQLGameDAO implements GameDAO {
                     else if (param == null) ps.setNull(i + 1, NULL);
                 }
                 ps.executeUpdate();
+                conn.commit();
             }
         } catch (SQLException e) {
             throw new DataAccessException(String.format("unable to update database: %s, %s", statement, e.getMessage()));

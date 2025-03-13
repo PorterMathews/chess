@@ -38,6 +38,8 @@ public class Handler {
         this.userService = new UserService(authDAO, userDAO);
         this.gameService = new GameService(authDAO, gameDAO);
         this.authService = new AuthService(authDAO, userDAO, gameDAO);
+
+        new MySqlDataAccess();
     }
 
     /**
