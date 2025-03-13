@@ -1,4 +1,5 @@
-import dataaccess.*;
+package dataaccess;
+
 import org.junit.jupiter.api.*;
 import model.*;
 import java.util.Collection;
@@ -8,7 +9,7 @@ import service.AuthService;
 import service.GameService;
 import service.UserService;
 
-public class dataaccess {
+public class DataAccessTest {
     private final UserService userService = new UserService(new SQLAuthDAO(), new SQLUserDAO());
     private final GameService gameService = new GameService(new SQLAuthDAO(), new SQLGameDAO());
     private final AuthService authService = new AuthService(new SQLAuthDAO(), new SQLUserDAO(), new SQLGameDAO());
