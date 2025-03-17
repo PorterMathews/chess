@@ -183,7 +183,4 @@ public class ServiceTests {
         assertEquals("Unauthorized to Get Game", exception.getMessage());
 
     }
-
-
-
 }
