@@ -39,6 +39,27 @@ public class DataAccessTest {
     }
 
     @Test
+    public void testClearDatabase() throws DataAccessException {
+        assertNotNull(existingAuth);
+        assertEquals("ExistingUser", existingUser.username());
+
+        int gameID = gameService.createGame(existingAuth, "NewGame");
+        assertNotEquals(0, gameID);
+
+        assertFalse(userDAO.getUsers().isEmpty());
+        assertFalse(gameDAO.getGames().isEmpty());
+        assertNotNull(authDAO.getAuthDataByAuthToken(existingAuth));
+
+        authService.clearAuthData();
+        gameService.clearGameData();
+        userService.clearUserData();
+
+        assertTrue(userDAO.getUsers().isEmpty());
+        assertTrue(gameDAO.getGames().isEmpty());
+        assertNull(authDAO.getAuthDataByAuthToken(existingAuth));
+    }
+
+    @Test
     public void testRegisterSuccess() {
         assertNotNull(existingAuth);
         assertEquals("ExistingUser", existingUser.username());

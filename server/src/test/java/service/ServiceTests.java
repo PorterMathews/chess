@@ -48,12 +48,13 @@ public class ServiceTests {
         assertFalse(gameDAO.getGames().isEmpty());
         assertNotNull(authDAO.getAuthDataByAuthToken(existingAuth));
 
-        authService.clearDatabase();
+        authService.clearAuthData();
+        gameService.clearGameData();
+        userService.clearUserData();
 
         assertTrue(userDAO.getUsers().isEmpty());
         assertTrue(gameDAO.getGames().isEmpty());
         assertNull(authDAO.getAuthDataByAuthToken(existingAuth));
-
     }
 
     @Test
