@@ -37,24 +37,56 @@ public class ServiceTests {
     }
 
     @Test
-    public void testClearDatabase() throws DataAccessException {
+    public void testClearUserData() throws DataAccessException {
         assertNotNull(existingAuth);
         assertEquals("ExistingUser", existingUser.username());
-
-        int gameID = gameService.createGame(existingAuth, "NewGame");
-        assertNotEquals(0, gameID);
-
         assertFalse(userDAO.getUsers().isEmpty());
-        assertFalse(gameDAO.getGames().isEmpty());
-        assertNotNull(authDAO.getAuthDataByAuthToken(existingAuth));
 
-        authService.clearAuthData();
-        gameService.clearGameData();
         userService.clearUserData();
 
         assertTrue(userDAO.getUsers().isEmpty());
-        assertTrue(gameDAO.getGames().isEmpty());
+    }
+
+    @Test
+    public void testClearAuthData() throws DataAccessException {
+        assertNotNull(existingAuth);
+        assertNotNull(authDAO.getAuthDataByAuthToken(existingAuth));
+
+        authService.clearAuthData();
+
         assertNull(authDAO.getAuthDataByAuthToken(existingAuth));
+    }
+
+    @Test
+    public void testClearGameData() throws DataAccessException {
+        int gameID = gameService.createGame(existingAuth, "NewGame");
+        assertNotEquals(0, gameID);
+        assertFalse(gameDAO.getGames().isEmpty());
+
+        gameService.clearGameData();
+
+        assertTrue(gameDAO.getGames().isEmpty());
+    }
+
+    @Test
+    public void testGetUserSuccess() throws DataAccessException {
+        assertFalse(userDAO.getUsers().isEmpty());
+    }
+
+    @Test
+    public void testGetUserClear() throws DataAccessException {
+        userService.clearUserData();
+        assertTrue(userDAO.getUsers().isEmpty());
+    }
+
+    @Test
+    public void testIsUserInDB() throws DataAccessException {
+        assertTrue(userDAO.isUserInDB(existingUser.username()));
+    }
+
+    @Test
+    public void testIsUserInDBFail() throws DataAccessException {
+        assertFalse(userDAO.isUserInDB("newUser"));
     }
 
     @Test
@@ -86,6 +118,22 @@ public class ServiceTests {
             userService.login(newUser);
         });
         assertEquals("Unauthorized", exception.getMessage());
+    }
+
+    @Test
+    public void authTokenSuccess() throws DataAccessException {
+        assertTrue(authDAO.authTokenExists(existingAuth));
+    }
+
+    @Test
+    public void authTokenNull() throws DataAccessException {
+        assertFalse(authDAO.authTokenExists(null));
+    }
+
+    @Test
+    public void generateAuthTokenSuccess() throws DataAccessException {
+        String string = authDAO.generateAuthToken("newUser");
+        assertNotNull(string);
     }
 
     @Test
@@ -123,6 +171,32 @@ public class ServiceTests {
             gameService.createGame(existingAuth, null);
         });
         assertEquals("bad request", exception.getMessage());
+    }
+
+    @Test
+    public void getGameByIDFail() throws DataAccessException {
+        assertNull(gameDAO.getGameByID(0));
+    }
+
+    @Test
+    public void testAddUserToGameSuccess() throws DataAccessException {
+        int num = gameDAO.createGame("newGame");
+        gameDAO.addUserToGame(existingUser.username(), num, "BLACK");
+        assertFalse(gameDAO.getGames().isEmpty());
+    }
+
+    @Test
+    public void testAddUserToGameBadGameID() throws DataAccessException {
+        int num = gameDAO.createGame("newGame");
+        Exception exception = assertThrows(DataAccessException.class, () -> {
+            gameDAO.addUserToGame(existingUser.username(), 0, "BLACK");
+        });
+        assertEquals("Game not found", exception.getMessage());
+    }
+
+    @Test
+    public void testGetGames() throws DataAccessException {
+        assertTrue(gameDAO.getGames().isEmpty());
     }
 
     @Test
