@@ -39,7 +39,7 @@ public class DataAccessTest {
     }
 
     @Test
-    public void testClearUserData() throws DataAccessException {
+    public void testClearUserDataGood() throws DataAccessException {
         assertNotNull(existingAuth);
         assertEquals("ExistingUser", existingUser.username());
         assertFalse(userDAO.getUsers().isEmpty());
@@ -48,7 +48,7 @@ public class DataAccessTest {
     }
 
     @Test
-    public void testClearAuthData() throws DataAccessException {
+    public void testClearAuthDataGood() throws DataAccessException {
         assertNotNull(existingAuth);
         assertNotNull(authDAO.getAuthDataByAuthToken(existingAuth));
         authService.clearAuthData();
@@ -56,7 +56,7 @@ public class DataAccessTest {
     }
 
     @Test
-    public void testClearGameData() throws DataAccessException {
+    public void testClearGameDataGood() throws DataAccessException {
         int gameID = gameService.createGame(existingAuth, "NewGame");
         assertNotEquals(0, gameID);
         assertFalse(gameDAO.getGames().isEmpty());
@@ -65,7 +65,7 @@ public class DataAccessTest {
     }
 
     @Test
-    public void testGetUserSuccess() throws DataAccessException {
+    public void testGetUser() throws DataAccessException {
         assertFalse(userDAO.getUsers().isEmpty());
     }
 
@@ -76,23 +76,23 @@ public class DataAccessTest {
     }
 
     @Test
-    public void testIsUserInDB() throws DataAccessException {
+    public void testIsUserInDBGood() throws DataAccessException {
         assertTrue(userDAO.isUserInDB(existingUser.username()));
     }
 
     @Test
-    public void testIsUserInDBFail() throws DataAccessException {
+    public void testIsUserInDBBad() throws DataAccessException {
         assertFalse(userDAO.isUserInDB("newUser"));
     }
 
     @Test
-    public void testRegisterSuccess() {
+    public void testRegisterGood() {
         assertNotNull(existingAuth);
         assertEquals("ExistingUser", existingUser.username());
     }
 
     @Test
-    public void testRegisterNullPassword() throws DataAccessException {
+    public void testRegisterNullPasswordBad() throws DataAccessException {
         UserData user = new UserData("User", null, "e@email.com");
         Exception exception = assertThrows(DataAccessException.class, () -> {
             userService.register(user);
@@ -107,18 +107,18 @@ public class DataAccessTest {
     }
 
     @Test
-    public void authTokenNull() throws DataAccessException {
+    public void authTokenBad() throws DataAccessException {
         assertFalse(authDAO.authTokenExists("null"));
     }
 
     @Test
-    public void generateAuthTokenSuccess() throws DataAccessException {
+    public void generateAuthTokenGood() throws DataAccessException {
         String string = authDAO.generateAuthToken("newUser");
         assertNotNull(string);
     }
 
     @Test
-    public void testLoginSuccess() throws DataAccessException {
+    public void testLoginGood() throws DataAccessException {
         AuthData authData = userService.login(existingUser);
         assertEquals(authData.username(), existingUser.username());
         assertNotNull(authData.authToken());
@@ -133,13 +133,13 @@ public class DataAccessTest {
     }
 
     @Test
-    public void testLogoutSuccess() throws DataAccessException {
+    public void testLogoutGood() throws DataAccessException {
         userService.logout(existingAuth);
         assertNull(authDAO.getAuthDataByAuthToken(existingAuth));
     }
 
     @Test
-    public void testLogoutNull() {
+    public void testLogoutBad() {
         Exception exception = assertThrows(DataAccessException.class, () -> {
             userService.logout("null");
         });
@@ -147,7 +147,7 @@ public class DataAccessTest {
     }
 
     @Test
-    public void testCreateGameSuccess() throws DataAccessException {
+    public void testCreateGameGood() throws DataAccessException {
         assertTrue(gameDAO.getGames().isEmpty());
         gameService.createGame(existingAuth, "testGame");
         assertFalse(gameDAO.getGames().isEmpty());
@@ -170,7 +170,7 @@ public class DataAccessTest {
     }
 
     @Test
-    public void testJoinGameSuccess() throws DataAccessException{
+    public void testJoinGameGood() throws DataAccessException{
         assertTrue(gameDAO.getGames().isEmpty());
         int gameID = gameService.createGame(existingAuth, "testGame");
         gameService.joinGame(existingAuth, "BLACK", gameID);
@@ -199,7 +199,7 @@ public class DataAccessTest {
     }
 
     @Test
-    public void testJoinGameBadColor() throws DataAccessException {
+    public void testJoinGameYELLO() throws DataAccessException {
         assertTrue(gameDAO.getGames().isEmpty());
         int gameID = gameService.createGame(existingAuth, "testGame");
         Exception exception = assertThrows(DataAccessException.class, () -> {
@@ -209,7 +209,7 @@ public class DataAccessTest {
     }
 
     @Test
-    public void testGetGamesSuccess() throws DataAccessException {
+    public void testGetGamesGood() throws DataAccessException {
         assertTrue(gameDAO.getGames().isEmpty());
         gameService.createGame(existingAuth, "testGame");
         Collection<GameData> game1Data = gameService.getGames(existingAuth);
@@ -217,7 +217,6 @@ public class DataAccessTest {
         gameService.createGame(existingAuth, "testGame");
         Collection<GameData> game2Data = gameService.getGames(existingAuth);
         assertEquals(2, game2Data.size());
-        //System.out.println("Games: " + game1Data);
     }
 
     @Test
@@ -236,7 +235,7 @@ public class DataAccessTest {
     }
 
     @Test
-    public void testAddUserToGameSuccess() throws DataAccessException {
+    public void testAddUserToGameGood() throws DataAccessException {
         int num = gameDAO.createGame("newGame");
         gameDAO.addUserToGame(existingUser.username(), num, "BLACK");
         assertFalse(gameDAO.getGames().isEmpty());
