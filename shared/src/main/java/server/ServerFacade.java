@@ -6,6 +6,8 @@ import model.*;
 
 import java.io.*;
 import java.net.*;
+import java.util.Collection;
+import java.util.Map;
 
 public class ServerFacade {
 
@@ -17,17 +19,49 @@ public class ServerFacade {
 
     public void clearDatabase() throws ResponseException {
         var path = "/db";
-        this.makeRequest("Delete", path, null, null);
+        this.makeRequest("DELETE", path,null, null, null);
     }
 
-    private <T> T makeRequest(String method, String path, Object request, Class<T> responseClass) throws ResponseException  {
+    public AuthData register(UserData userData) throws ResponseException {
+        var path = "/user";
+        return this.makeRequest("POST", path,null, userData, AuthData.class);
+    }
+
+    public AuthData login(UserData userData) throws ResponseException {
+        var path = "/session";
+        return this.makeRequest("POST", path,null, userData, AuthData.class);
+    }
+
+    public void logout(String authToken) throws ResponseException {
+        var path = "/session";
+        this.makeRequest("DELETE", path,null, authToken, null);
+    }
+
+    public int crateGame(String authToken, String gameName) throws ResponseException {
+        var path = "/session";
+
+        return this.makeRequest("POST", path, authToken, gameName, int.class);
+    }
+
+    public void joinGame(String authToken, String playerColor, int gameID) throws ResponseException {
+        var path = "/session";
+        this.makeRequest("PUT", path, authToken, playerColor, null);
+    }
+
+    public Collection<GameData> getGames(String authToken) throws ResponseException {
+        var path = "/game";
+        return this.makeRequest("GET", path, authToken, null, Collection<GameData.class>);
+    }
+
+    private <T> T makeRequest(String method, String path,String authToken, Object requestBody, Class<T> responseClass) throws ResponseException  {
         try {
             URL url = (new URI(serverUrl + path)).toURL();
             HttpURLConnection http = (HttpURLConnection) url.openConnection();
             http.setRequestMethod(method);
             http.setDoOutput(true);
+            http.setRequestProperty("Authorization", authToken);
+            writeBody(requestBody, http);
 
-            writeBody(request, http);
             http.connect();
             throwIfNotSuccessful(http);
             return readBody(http, responseClass);
