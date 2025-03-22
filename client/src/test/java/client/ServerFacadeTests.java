@@ -114,28 +114,29 @@ public class ServerFacadeTests {
     @Test
     public void createGameFail() {
         Assertions.assertThrows(ResponseException.class, () -> {
-            brokenFacade.crateGame(null);
+            brokenFacade.crateGame(null, "game");
         });
     }
 
     @Test
-    public void joinGameSuccess() {
+    public void joinGameSuccess() throws ResponseException {
+        int gameID = serverFacade.crateGame(existingAuth,"existingAuth");
         Assertions.assertDoesNotThrow(() -> {
-            serverFacade.joinGame(existingAuth,"existingAuth");
+            serverFacade.joinGame(existingAuth,"black", gameID);
         });
     }
 
     @Test
     public void joinGameFail() {
         Assertions.assertThrows(ResponseException.class, () -> {
-            brokenFacade.joinGame(null);
+            brokenFacade.joinGame(null, "white", 1324);
         });
     }
 
     @Test
     public void getGamesSuccess() {
         Assertions.assertDoesNotThrow(() -> {
-            serverFacade.getGames(existingAuth,"existingAuth");
+            serverFacade.getGames(existingAuth);
         });
     }
 

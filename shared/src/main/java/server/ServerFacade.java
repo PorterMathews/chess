@@ -7,6 +7,7 @@ import model.*;
 import java.io.*;
 import java.net.*;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 public class ServerFacade {
@@ -34,23 +35,24 @@ public class ServerFacade {
 
     public void logout(String authToken) throws ResponseException {
         var path = "/session";
-        this.makeRequest("DELETE", path,null, authToken, null);
+        this.makeRequest("DELETE", path,authToken, null, null);
     }
 
     public int crateGame(String authToken, String gameName) throws ResponseException {
-        var path = "/session";
-
-        return this.makeRequest("POST", path, authToken, gameName, int.class);
+        var path = "/game";
+        CreateGameResponse result = makeRequest("POST", path, authToken, new CreateGameRequest(gameName), CreateGameResponse.class);
+        return result.gameID;
     }
 
     public void joinGame(String authToken, String playerColor, int gameID) throws ResponseException {
-        var path = "/session";
-        this.makeRequest("PUT", path, authToken, playerColor, null);
+        var path = "/game";
+        this.makeRequest("PUT", path, authToken, new JoinGameRequest(playerColor, gameID), null);
     }
 
-    public Collection<GameData> getGames(String authToken) throws ResponseException {
+    public List<GameData> getGames(String authToken) throws ResponseException {
         var path = "/game";
-        return this.makeRequest("GET", path, authToken, null, Collection<GameData.class>);
+        GameListResponse result = makeRequest("GET", path, authToken, null, GameListResponse.class);
+        return result.games;
     }
 
     private <T> T makeRequest(String method, String path,String authToken, Object requestBody, Class<T> responseClass) throws ResponseException  {
@@ -111,4 +113,27 @@ public class ServerFacade {
     private boolean isSuccessful(int status) {
         return status / 100 == 2;
     }
+}
+
+class CreateGameRequest {
+    String gameName;
+    public CreateGameRequest(String gameName) {
+        this.gameName = gameName; }
+}
+
+class JoinGameRequest {
+    String playerColor;
+    int gameID;
+    public JoinGameRequest(String playerColor, int gameID) {
+        this.playerColor = playerColor;
+        this.gameID = gameID;
+    }
+}
+
+class GameListResponse {
+    public List<GameData> games;
+}
+
+class CreateGameResponse {
+    public int gameID;
 }
