@@ -2,11 +2,13 @@ package client;
 
 import org.junit.jupiter.api.*;
 import server.Server;
+import server.ServerFacade;
 
 
 public class ServerFacadeTests {
 
     private static Server server;
+    private static ServerFacade serverFacade;
 
     @BeforeAll
     public static void init() {
@@ -25,5 +27,4 @@ public class ServerFacadeTests {
     public void sampleTest() {
         Assertions.assertTrue(true);
     }
-
 }

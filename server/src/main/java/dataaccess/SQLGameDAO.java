@@ -43,7 +43,7 @@ public class SQLGameDAO implements GameDAO {
      * @throws DataAccessException
      */
     public void addUserToGame(String userName, int gameID, String playerColor) throws DataAccessException {
-        System.out.println("Creating user with name: " + userName);
+        //System.out.println("Creating user with name: " + userName);
         GameData gameData = getGameFromDatabaseByID(gameID);
         if (gameData == null) {
             throw new DataAccessException("Game not found");

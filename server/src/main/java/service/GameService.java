@@ -26,8 +26,8 @@ public class GameService {
     }
 
     public void joinGame(String authToken, String playerColor, int gameID) throws DataAccessException {
-        System.out.println("joining game Service");
-        System.out.println("starting authToken with: " + authToken);
+        //System.out.println("joining game Service");
+        //System.out.println("starting authToken with: " + authToken);
         if (!authDAO.authTokenExists(authToken)) {
             throw new DataAccessException("Unauthorized");
         }
@@ -51,10 +51,10 @@ public class GameService {
         } else if (lowerCasePlayerColor.equals("black") && gameData.blackUsername() != null) {
             throw new DataAccessException("Username already taken");
         }
-        System.out.println("passed checks in Service");
-        System.out.println("grabbing authData with: " + authToken);
+        //System.out.println("passed checks in Service");
+        //System.out.println("grabbing authData with: " + authToken);
         AuthData authData = authDAO.getAuthDataByAuthToken(authToken);
-        System.out.println("grabbed authData: " + authData);
+        //System.out.println("grabbed authData: " + authData);
         gameDAO.addUserToGame(authData.username(), gameID, lowerCasePlayerColor);
     }
 

@@ -21,7 +21,7 @@ public class Handler {
     private final AuthService authService;
 
     public Handler(boolean useSQL) {
-        System.out.println("start");
+        //System.out.println("start");
         AuthDAO authDAO;
         UserDAO userDAO;
         GameDAO gameDAO;
@@ -36,7 +36,7 @@ public class Handler {
             gameDAO = new MemoryGameDAO();
         }
 
-        System.out.println("Using DAO: " + userDAO.getClass().getSimpleName());
+        //System.out.println("Using DAO: " + userDAO.getClass().getSimpleName());
 
         this.userService = new UserService(authDAO, userDAO);
         this.gameService = new GameService(authDAO, gameDAO);
@@ -100,8 +100,8 @@ public class Handler {
      */
     public Object login(Request req, Response res) {
         try {
-            System.out.println("Start of login handler");
-            System.out.println("userService: " + userService);
+            //System.out.println("Start of login handler");
+            //System.out.println("userService: " + userService);
             var userData = new Gson().fromJson(req.body(), UserData.class);
             var authData = userService.login(userData);
             res.status(200);
