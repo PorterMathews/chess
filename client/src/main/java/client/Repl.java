@@ -15,11 +15,11 @@ public class Repl {
 
     public void preLogin() {
         System.out.print(SET_TEXT_COLOR_WHITE + SET_TEXT_COLOR_BLUE);
-        System.out.print(client.help());
+        //System.out.print(client.help());
 
         var result = "";
         while (!result.equals("quit")) {
-            printPrompt();
+            printPromptLogout();
             String line = scanner.nextLine();
 
             try {
@@ -39,7 +39,7 @@ public class Repl {
 
         var result = "";
         while (!result.equals("quit")) {
-            printPrompt();
+            printPromptLogin();
             String line = scanner.nextLine();
 
             try {
@@ -57,7 +57,15 @@ public class Repl {
 
     }
 
-    private void printPrompt() {
-        System.out.print("\n" + SET_TEXT_COLOR_WHITE + ">>> " + SET_TEXT_COLOR_GREEN);
+    private void printPromptLogout() {
+        System.out.print("\n" + SET_TEXT_COLOR_WHITE + "[Logged out] >>> " + SET_TEXT_COLOR_GREEN);
+    }
+
+    private void printPromptLogin() {
+        System.out.print("\n" + SET_TEXT_COLOR_WHITE + "[Logged in] >>> " + SET_TEXT_COLOR_GREEN);
+    }
+
+    private void printPromptInGame() {
+        System.out.print("\n" + SET_TEXT_COLOR_WHITE + "[In game]>>> " + SET_TEXT_COLOR_GREEN);
     }
 }
