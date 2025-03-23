@@ -2,7 +2,6 @@ package client;
 
 import java.util.Arrays;
 import java.util.List;
-
 import model.*;
 import exception.ResponseException;
 import server.ServerFacade;
@@ -12,8 +11,8 @@ public class ChessClient {
     private String authToken = null;
     private final ServerFacade server;
     private final String serverUrl;
-    private State state = State.LOGGEDOUT;
-    private final boolean detailedErrorMsg = false;
+    private static State state = State.LOGGEDOUT;
+    private final boolean detailedErrorMsg = true;
     private String errorMsg;
 
     public ChessClient(String serverUrl) {
@@ -36,6 +35,7 @@ public class ChessClient {
                 case "join", "j" -> join(params);
                 case "observe", "view", "ob" -> observe(params);
                 case "back", "b" -> back();
+                case "db", "erase" -> clear(params);
                 case "quit", "q" -> "quit";
                 default -> help();
             };
@@ -212,6 +212,21 @@ public class ChessClient {
         throw new ResponseException(400, "Back, back to where? Try quit instead");
     }
 
+    public String clear(String... params) throws ResponseException {
+        if (params.length == 1 && params[0].equals("1")) {
+            try {
+                server.clearDatabase();
+            } catch (ResponseException e) {
+                errorMsg = e.getMessage();
+                throw new ResponseException(400, "Unable to clearDB: " + errorMsg);
+            }
+            state = State.LOGGEDOUT;
+            authToken = null;
+            return "db cleared";
+        }
+        throw new ResponseException(400, "No");
+    }
+
     public String help() {
         if (state == State.LOGGEDOUT) {
             return """
@@ -283,5 +298,9 @@ public class ChessClient {
         if (state == State.LOGGEDOUT) {
             throw new ResponseException(400, "You must sign in");
         }
+    }
+
+    public static State getState() {
+        return state;
     }
 }
