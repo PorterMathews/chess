@@ -8,7 +8,8 @@ public class Repl {
     private final ChessClient client;
     Scanner scanner = new Scanner(System.in);
     private String result;
-    ChessGame chessGame = new ChessGame();;
+    ChessGame chessGame = new ChessGame();
+    DrawChessBoard drawChessBoard = new DrawChessBoard(chessGame);
 
 
     public Repl(String serverUrl) {
