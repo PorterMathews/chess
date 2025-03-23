@@ -134,16 +134,16 @@ public class ServerFacadeTests {
     }
 
     @Test
-    public void getGamesSuccess() {
+    public void listGamesSuccess() {
         Assertions.assertDoesNotThrow(() -> {
-            serverFacade.getGames(existingAuth);
+            serverFacade.listGames(existingAuth);
         });
     }
 
     @Test
-    public void getGamesFail() {
+    public void listGamesFail() {
         Assertions.assertThrows(ResponseException.class, () -> {
-            brokenFacade.getGames(null);
+            brokenFacade.listGames(null);
         });
     }
 

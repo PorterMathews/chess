@@ -6,9 +6,7 @@ import model.*;
 
 import java.io.*;
 import java.net.*;
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 public class ServerFacade {
 
@@ -49,7 +47,7 @@ public class ServerFacade {
         this.makeRequest("PUT", path, authToken, new JoinGameRequest(playerColor, gameID), null);
     }
 
-    public List<GameData> getGames(String authToken) throws ResponseException {
+    public List<GameData> listGames(String authToken) throws ResponseException {
         var path = "/game";
         GameListResponse result = makeRequest("GET", path, authToken, null, GameListResponse.class);
         return result.games;
