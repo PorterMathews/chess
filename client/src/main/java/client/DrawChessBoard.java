@@ -6,24 +6,28 @@ import static ui.EscapeSequences.*;
 
 public class DrawChessBoard {
     static ChessGame chessGame;
-    static ChessBoard chessBoard;
-    private static final String darkColor = SET_BG_COLOR_BLACK;
-    private static final String lightColor = SET_BG_COLOR_WHITE;
-    private static final String edgeColor = SET_BG_COLOR_LIGHT_GREY;
+    private static final String darkTileColor = SET_BG_COLOR_DARK_GREEN;
+    private static final String lightTileColor = SET_BG_COLOR_BLUE;
+    private static final String edgeTileColor = SET_BG_COLOR_RED;
+    private static final String lightPieceColor = SET_TEXT_COLOR_YELLOW;
+    private static final String darkPieceColor = SET_TEXT_COLOR_RED;
+    private static final String edgeCharacterColor = SET_TEXT_COLOR_GREEN;
 
     public DrawChessBoard(ChessGame chessGame) {
         this.chessGame = chessGame;
     }
 
-    public static String drawChessboard() {
+    public static String drawBoard() {
         StringBuilder result = new StringBuilder();
+        result.append(ERASE_SCREEN);
         for (int row = 0; row < 10; row++) {
-            for (int col = 0; col < 10; col++) {
+            for (int col = 9; col >= 0; col--) {
                 String piece = EMPTY;
                 if (row == 0 || col == 0 || row == 9 || col == 9) {
-                    result.append(edgeSquare(EMPTY));
+                    piece = edgeCharacterDeterminer(row, col);
+                    result.append(edgeSquare(piece));
                 }
-                else if ((row + col) % 2 == 1){
+                else if ((row + col) % 2 == 0){
                     piece = determinePiece(row, col);
                     result.append(darkSquare(piece));
                 }
@@ -38,63 +42,68 @@ public class DrawChessBoard {
     }
 
     private static String darkSquare(String piece) {
-        return (darkColor + piece + RESET_BG_COLOR);
+        return (darkTileColor + piece + RESET_BG_COLOR);
     }
 
     private static String lightSquare(String piece) {
-        piece = EMPTY;
-        return (lightColor + piece + RESET_BG_COLOR);
+        return (lightTileColor + piece + RESET_BG_COLOR);
     }
 
     private static String edgeSquare(String piece) {
-        piece = EMPTY;
-        return (edgeColor + piece + RESET_BG_COLOR);
+        return (edgeTileColor + piece + RESET_BG_COLOR);
     }
 
     private static String determinePiece(int row, int col) {
-        ChessPiece.PieceType type = chessBoard.getPiece(new ChessPosition(row,col)).getPieceType();
-        if (type == null) {
+        ChessPiece chessPiece = ChessGame.getBoard().getPiece(new ChessPosition(row, col));
+        if (chessPiece == null) {
             return EMPTY;
         }
-        ChessGame.TeamColor color = chessBoard.getPiece(new ChessPosition(row,col)).getTeamColor();
+        ChessPiece.PieceType type = chessPiece.getPieceType();
+        ChessGame.TeamColor color = ChessGame.getBoard().getPiece(new ChessPosition(row,col)).getTeamColor();
         if (color.equals(ChessGame.TeamColor.WHITE)) {
+
             if (type.equals(ChessPiece.PieceType.KING)) {
-                return WHITE_KING;
+                return lightPieceColor + WHITE_KING;
             } else if (type.equals(ChessPiece.PieceType.QUEEN)) {
-                return WHITE_QUEEN;
+                return lightPieceColor + WHITE_QUEEN;
             } else if (type.equals(ChessPiece.PieceType.BISHOP)) {
-                return WHITE_BISHOP;
+                return lightPieceColor + WHITE_BISHOP;
             } else if (type.equals(ChessPiece.PieceType.KNIGHT)) {
-                return WHITE_KNIGHT;
+                return lightPieceColor + WHITE_KNIGHT;
             } else if (type.equals(ChessPiece.PieceType.ROOK)) {
-                return WHITE_ROOK;
+                return lightPieceColor + WHITE_ROOK;
             } else if (type.equals(ChessPiece.PieceType.PAWN)) {
-                return WHITE_PAWN;
+                return lightPieceColor + WHITE_PAWN;
             }
         } else if (color.equals(ChessGame.TeamColor.BLACK)) {
             if (type.equals(ChessPiece.PieceType.KING)) {
-                return BLACK_KING;
+                return darkPieceColor + BLACK_KING;
             } else if (type.equals(ChessPiece.PieceType.QUEEN)) {
-                return BLACK_QUEEN;
+                return darkPieceColor + BLACK_QUEEN;
             } else if (type.equals(ChessPiece.PieceType.BISHOP)) {
-                return BLACK_BISHOP;
+                return darkPieceColor + BLACK_BISHOP;
             } else if (type.equals(ChessPiece.PieceType.KNIGHT)) {
-                return BLACK_KNIGHT;
+                return darkPieceColor + BLACK_KNIGHT;
             } else if (type.equals(ChessPiece.PieceType.ROOK)) {
-                return BLACK_ROOK;
+                return darkPieceColor + BLACK_ROOK;
             } else if (type.equals(ChessPiece.PieceType.PAWN)) {
-                return BLACK_PAWN;
+                return darkPieceColor + BLACK_PAWN;
             }
         }
         throw new RuntimeException("Not a correct piece/color");
     }
 
-    private static String evenRow() {
-        StringBuilder result = new StringBuilder();
-        for (int i = 0; i < 4; i++) {
-            result.append(lightSquare(EMPTY)).append(darkSquare(EMPTY));
+    private static String edgeCharacterDeterminer(int row, int col) {
+        int dif = row - col;
+        if (dif == 0 || dif == 9 || dif == -9) {
+            return SET_TEXT_COLOR_GREEN + EMPTY;
         }
-        result.append(chessBoard.getPiece(new ChessPosition(1,1)).getPieceType());
-        return result.toString();
+        if (col == 0 || col == 9) {
+            return String.format(edgeCharacterColor + " " + row + " ");
+        }
+        if (row == 0 || row == 9) {
+            return String.format(edgeCharacterColor + " " + ((char)('a' + col -1)) + " ");
+        }
+        throw new RuntimeException("determining edge character for not edge");
     }
 }

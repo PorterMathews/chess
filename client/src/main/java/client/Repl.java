@@ -9,26 +9,21 @@ public class Repl {
     Scanner scanner = new Scanner(System.in);
     private String result;
     ChessGame chessGame = new ChessGame();
-    DrawChessBoard drawChessBoard = new DrawChessBoard(chessGame);
+    DrawChessBoard drawChessBoard;
 
 
     public Repl(String serverUrl) {
         client = new ChessClient(serverUrl);
         result = "";
+        drawChessBoard = new DrawChessBoard(chessGame);
     }
 
     public void replMain() {
         System.out.print(SET_TEXT_ITALIC + SET_TEXT_COLOR_RED + "      Welcome!\n\n" + RESET_TEXT_ITALIC);
 
-        System.out.printf(DrawChessBoard.drawChessboard() + "\n");
+        System.out.print(ERASE_SCREEN);
+        System.out.print(DrawChessBoard.drawBoard());
 
-        while (!result.equals("quit")) {
-            switch (ChessClient.getState()) {
-                case LOGGEDIN -> postLogin();
-                case INGAME -> gameplay();
-                default -> preLogin();
-            }
-        }
     }
 
     public void preLogin() {
@@ -68,7 +63,7 @@ public class Repl {
     public void gameplay() {
         System.out.print(SET_TEXT_COLOR_WHITE + SET_TEXT_COLOR_BLUE);
         System.out.print("Printing board");
-        System.out.print(DrawChessBoard.drawChessboard());
+        //System.out.print(DrawChessBoard.drawChessboard());
 
         printPromptInGame();
         String line = scanner.nextLine();
