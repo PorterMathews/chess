@@ -6,12 +6,12 @@ import static ui.EscapeSequences.*;
 
 public class DrawChessBoard {
     static ChessGame chessGame;
-    private static final String darkTileColor = SET_BG_COLOR_LIGHT_GREY;
-    private static final String lightTileColor = SET_BG_COLOR_WHITE;
-    private static final String edgeTileColor = SET_BG_COLOR_DARK_GREY;
-    private static final String lightPieceColor = SET_TEXT_COLOR_BLUE;
-    private static final String darkPieceColor = SET_TEXT_COLOR_RED;
-    private static final String edgeCharacterColor = SET_TEXT_COLOR_WHITE;
+    private static final String DARK_TILE_COLOR = SET_BG_COLOR_LIGHT_GREY;
+    private static final String LIGHT_TILE_COLOR = SET_BG_COLOR_WHITE;
+    private static final String EDGE_TILE_COLOR = SET_BG_COLOR_DARK_GREY;
+    private static final String LIGHT_PIECE_COLOR = SET_TEXT_COLOR_BLUE;
+    private static final String DARK_PIECE_COLOR = SET_TEXT_COLOR_RED;
+    private static final String EDGE_CHARACTER_COLOR = SET_TEXT_COLOR_WHITE;
     private static final String EMPTY = "   ";
 
     public DrawChessBoard(ChessGame chessGame) {
@@ -50,7 +50,7 @@ public class DrawChessBoard {
      * @return that square
      */
     private static String darkSquare(String piece) {
-        return (darkTileColor + piece + RESET_BG_COLOR);
+        return (DARK_TILE_COLOR + piece + RESET_BG_COLOR);
     }
 
     /**
@@ -59,7 +59,7 @@ public class DrawChessBoard {
      * @return that square
      */
     private static String lightSquare(String piece) {
-        return (lightTileColor + piece + RESET_BG_COLOR);
+        return (LIGHT_TILE_COLOR + piece + RESET_BG_COLOR);
     }
 
     /**
@@ -68,7 +68,7 @@ public class DrawChessBoard {
      * @return that square
      */
     private static String edgeSquare(String piece) {
-        return (edgeTileColor + piece + RESET_BG_COLOR);
+        return (EDGE_TILE_COLOR + piece + RESET_BG_COLOR);
     }
 
     /**
@@ -110,21 +110,21 @@ public class DrawChessBoard {
         String textColor = "";
 
         if (color.equals(ChessGame.TeamColor.WHITE)) {
-            textColor = lightPieceColor;
+            textColor = LIGHT_PIECE_COLOR;
         } else if (color.equals(ChessGame.TeamColor.BLACK)) {
-            textColor = darkPieceColor;
+            textColor = DARK_PIECE_COLOR;
         }
-        if (type.equals(ChessPiece.PieceType.KING)) {
+        if (type.equals(ChessPiece.pieceType.KING)) {
             piece = "K";
-        } else if (type.equals(ChessPiece.PieceType.QUEEN)) {
+        } else if (type.equals(ChessPiece.pieceType.QUEEN)) {
             piece = "Q";
-        } else if (type.equals(ChessPiece.PieceType.BISHOP)) {
+        } else if (type.equals(ChessPiece.pieceType.BISHOP)) {
             piece = "B";
-        } else if (type.equals(ChessPiece.PieceType.KNIGHT)) {
+        } else if (type.equals(ChessPiece.pieceType.KNIGHT)) {
             piece = "B";
-        } else if (type.equals(ChessPiece.PieceType.ROOK)) {
+        } else if (type.equals(ChessPiece.pieceType.ROOK)) {
             piece = "R";
-        } else if (type.equals(ChessPiece.PieceType.PAWN)) {
+        } else if (type.equals(ChessPiece.pieceType.PAWN)) {
             piece = "P";
         }
         result.append(String.format(textColor + " " + piece + " " + RESET_TEXT_COLOR));
@@ -143,10 +143,10 @@ public class DrawChessBoard {
             return "   ";
         }
         if (col == 0 || col == 9) {
-            return String.format(edgeCharacterColor + " " + row + " ");
+            return String.format(EDGE_CHARACTER_COLOR + " " + row + " ");
         }
         if (row == 0 || row == 9) {
-            return String.format(edgeCharacterColor + " " + ((char)('a' + col -1)) + " ");
+            return String.format(EDGE_CHARACTER_COLOR + " " + ((char)('a' + col -1)) + " ");
         }
         throw new RuntimeException("determining edge character for not edge");
     }

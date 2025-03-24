@@ -386,7 +386,7 @@ public class ChessGame {
                 ChessPiece piece = chessBoard.getPiece(position);
                 if (piece == null){
                     continue;
-                } else if (piece.getPieceType() == ChessPiece.PieceType.KING &&
+                } else if (piece.getPieceType() == ChessPiece.pieceType.KING &&
                             piece.getTeamColor() == teamColor) {
                     kingPosition = position;
                     break;

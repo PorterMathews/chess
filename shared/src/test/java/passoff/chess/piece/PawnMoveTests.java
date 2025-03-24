@@ -415,10 +415,10 @@ public class PawnMoveTests {
         var validMoves = new ArrayList<ChessMove>();
         for (var endPosition : endPositions) {
             var end = new ChessPosition(endPosition[0], endPosition[1]);
-            validMoves.add(new ChessMove(startingPosition, end, ChessPiece.PieceType.QUEEN));
-            validMoves.add(new ChessMove(startingPosition, end, ChessPiece.PieceType.BISHOP));
-            validMoves.add(new ChessMove(startingPosition, end, ChessPiece.PieceType.ROOK));
-            validMoves.add(new ChessMove(startingPosition, end, ChessPiece.PieceType.KNIGHT));
+            validMoves.add(new ChessMove(startingPosition, end, ChessPiece.pieceType.QUEEN));
+            validMoves.add(new ChessMove(startingPosition, end, ChessPiece.pieceType.BISHOP));
+            validMoves.add(new ChessMove(startingPosition, end, ChessPiece.pieceType.ROOK));
+            validMoves.add(new ChessMove(startingPosition, end, ChessPiece.pieceType.KNIGHT));
         }
 
         TestUtilities.validateMoves(board, testPiece, startingPosition, validMoves);

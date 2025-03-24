@@ -14,7 +14,7 @@ public class ChessBoardTests {
     @DisplayName("Add and Get Piece")
     public void getAddPiece() {
         ChessPosition position = new ChessPosition(4, 4);
-        ChessPiece piece = new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.BISHOP);
+        ChessPiece piece = new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.pieceType.BISHOP);
 
         var board = new ChessBoard();
         board.addPiece(position, piece);

@@ -10,10 +10,10 @@ public class Repl {
     private String result;
     ChessGame chessGame = new ChessGame();
     DrawChessBoard drawChessBoard;
-    private static final String preLoginColor = SET_TEXT_COLOR_GREEN;
-    private static final String postLoginColor = SET_TEXT_COLOR_MAGENTA;
-    private static final String inGameColor = SET_TEXT_COLOR_BLUE;
-    private static final String gameColor = SET_TEXT_COLOR_LIGHT_GREY;
+    private static final String PRE_LOGIN_COLOR = SET_TEXT_COLOR_GREEN;
+    private static final String POST_LOGIN_COLOR = SET_TEXT_COLOR_MAGENTA;
+    private static final String IN_GAME_COLOR = SET_TEXT_COLOR_BLUE;
+    private static final String GAME_COLOR = SET_TEXT_COLOR_LIGHT_GREY;
     private static State state;
 
 
@@ -44,17 +44,17 @@ public class Repl {
      */
     public void preLogin() {
         if (state != State.LOGGEDOUT) {
-            System.out.println(preLoginColor + client.help());
+            System.out.println(PRE_LOGIN_COLOR + client.help());
             state = State.LOGGEDOUT;
         }
-        System.out.println(preLoginColor + "Please, sign in or register");
+        System.out.println(PRE_LOGIN_COLOR + "Please, sign in or register");
         printPromptLogout();
 
         String line = scanner.nextLine();
 
         try {
             result = client.eval(line);
-            System.out.println(preLoginColor + result);
+            System.out.println(PRE_LOGIN_COLOR + result);
         } catch (Throwable e) {
             var msg = e.toString();
             System.out.print(msg);
@@ -67,17 +67,17 @@ public class Repl {
      */
     public void postLogin() {
         if (state != State.LOGGEDIN) {
-            System.out.println(postLoginColor + client.help());
+            System.out.println(POST_LOGIN_COLOR + client.help());
             state = State.LOGGEDIN;
         }
-        System.out.println(postLoginColor + "Please, join or create a game");
+        System.out.println(POST_LOGIN_COLOR + "Please, join or create a game");
         printPromptLogin();
 
         String line = scanner.nextLine();
 
         try {
             result = client.eval(line);
-            System.out.println(postLoginColor + result);
+            System.out.println(POST_LOGIN_COLOR + result);
         } catch (Throwable e) {
             var msg = e.toString();
             System.out.print(msg);
@@ -91,7 +91,7 @@ public class Repl {
     public void gameplay() {
         System.out.println(DrawChessBoard.drawBoard(ChessClient.getPlayerColor()));
         if (state != State.INGAME) {
-            System.out.println(inGameColor + client.help());
+            System.out.println(IN_GAME_COLOR + client.help());
             state = State.INGAME;
         }
         printPromptInGame();
@@ -99,7 +99,7 @@ public class Repl {
 
         try {
             result = client.eval(line);
-            System.out.print(inGameColor + result);
+            System.out.print(IN_GAME_COLOR + result);
         } catch (Throwable e) {
             var msg = e.toString();
             System.out.print(msg);
@@ -108,14 +108,14 @@ public class Repl {
     }
 
     private void printPromptLogout() {
-        System.out.print("\n" + gameColor + "[Logged out] >>> ");
+        System.out.print("\n" + GAME_COLOR + "[Logged out] >>> ");
     }
 
     private void printPromptLogin() {
-        System.out.print("\n" + gameColor + "[Logged in as "+ChessClient.getUsername()+"] >>> ");
+        System.out.print("\n" + GAME_COLOR + "[Logged in as "+ChessClient.getUsername()+"] >>> ");
     }
 
     private void printPromptInGame() {
-        System.out.print("\n" + gameColor + "[In game] >>> ");
+        System.out.print("\n" + GAME_COLOR + "[In game] >>> ");
     }
 }

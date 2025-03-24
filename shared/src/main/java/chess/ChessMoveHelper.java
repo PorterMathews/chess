@@ -76,10 +76,10 @@ public class ChessMoveHelper {
         }
 
         ChessPiece.PieceType[] types = {
-                ChessPiece.PieceType.QUEEN,
-                ChessPiece.PieceType.ROOK,
-                ChessPiece.PieceType.BISHOP,
-                ChessPiece.PieceType.KNIGHT
+                ChessPiece.pieceType.QUEEN,
+                ChessPiece.pieceType.ROOK,
+                ChessPiece.pieceType.BISHOP,
+                ChessPiece.pieceType.KNIGHT
         };
 
         ChessPosition march = new ChessPosition((myPosition.getRow() + colorMult),

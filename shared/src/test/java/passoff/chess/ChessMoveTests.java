@@ -25,7 +25,7 @@ public class ChessMoveTests {
         startDifferent = new ChessMove(new ChessPosition(2, 4), new ChessPosition(1, 5), null);
         endDifferent = new ChessMove(new ChessPosition(2, 6), new ChessPosition(5, 3), null);
         promoteDifferent = new ChessMove(new ChessPosition(2, 6), new ChessPosition(1, 5),
-                ChessPiece.PieceType.QUEEN);
+                ChessPiece.pieceType.QUEEN);
     }
 
     @Test

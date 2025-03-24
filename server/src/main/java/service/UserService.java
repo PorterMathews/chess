@@ -42,9 +42,6 @@ public class UserService {
         if (u.password() == null || u.username() == null){
             throw new DataAccessException("Unauthorized");
         }
-        //System.out.println("userDAO: " + userDAO);
-        //System.out.println("Checking password...");
-        //System.out.println("Using DAO: " + userDAO.getClass().getSimpleName());
         if (!userDAO.checkPassword(u)) {
             throw new DataAccessException("Unauthorized");
         }

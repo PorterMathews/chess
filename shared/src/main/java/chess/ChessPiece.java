@@ -11,7 +11,7 @@ import java.util.Objects;
  * signature of the existing methods.
  */
 public class ChessPiece {
-    public static ChessPiece.PieceType PieceType;
+    public static ChessPiece.PieceType pieceType;
     private final ChessGame.TeamColor pieceColor;
     private final ChessPiece.PieceType type;
     private boolean hasNotMoved;
