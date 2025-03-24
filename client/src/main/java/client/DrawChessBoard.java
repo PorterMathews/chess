@@ -1,7 +1,6 @@
 package client;
 
 import chess.*;
-import java.util.*;
 
 import static ui.EscapeSequences.*;
 
@@ -19,26 +18,23 @@ public class DrawChessBoard {
         this.chessGame = chessGame;
     }
 
-    public static String drawBoard() {
+    public static String drawBoard(String playerColor) {
         StringBuilder result = new StringBuilder();
-        result.append(ERASE_SCREEN);
-        for (int row = 0; row < 10; row++) {
-            for (int col = 9; col >= 0; col--) {
-                String piece;
-                if (row == 0 || col == 0 || row == 9 || col == 9) {
-                    piece = edgeCharacterDeterminer(row, col);
-                    result.append(edgeSquare(piece));
+
+        if (playerColor.equals("white")) {
+            for (int row = 9; row >= 0; row--) {
+                for (int col = 0; col < 10; col++) {
+                    result.append(buildingLoop(row, col));
                 }
-                else if ((row + col) % 2 == 0){
-                    piece = determinePiece(row, col);
-                    result.append(darkSquare(piece));
-                }
-                else {
-                    piece = determinePiece(row, col);
-                    result.append(lightSquare(piece));
-                }
+                result.append("\n");
             }
-            result.append("\n");
+        } else {
+            for (int row = 0; row < 10; row++) {
+                for (int col = 9; col >= 0; col--) {
+                    result.append(buildingLoop(row, col));
+                }
+                result.append("\n");
+            }
         }
         return result.toString();
     }
@@ -55,12 +51,26 @@ public class DrawChessBoard {
         return (edgeTileColor + piece + RESET_BG_COLOR);
     }
 
+    private static String buildingLoop(int row, int col) {
+        if (row == 0 || col == 0 || row == 9 || col == 9) {
+            return edgeSquare(edgeCharacterDeterminer(row, col));
+        }
+        else if ((row + col) % 2 == 0){
+            return darkSquare(determinePiece(row, col));
+        }
+        else {
+            return lightSquare(determinePiece(row, col));
+        }
+    }
+
     private static String determinePiece(int row, int col) {
         ChessPiece chessPiece = ChessGame.getBoard().getPiece(new ChessPosition(row, col));
-        StringBuilder result = new StringBuilder();
         if (chessPiece == null) {
             return EMPTY;
         }
+
+        StringBuilder result = new StringBuilder();
+
         ChessPiece.PieceType type = chessPiece.getPieceType();
         ChessGame.TeamColor color = ChessGame.getBoard().getPiece(new ChessPosition(row,col)).getTeamColor();
 
