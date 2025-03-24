@@ -18,6 +18,11 @@ public class DrawChessBoard {
         this.chessGame = chessGame;
     }
 
+    /**
+     * main method
+     * @param playerColor player orientation
+     * @return the gameBoard in string to be printed
+     */
     public static String drawBoard(String playerColor) {
         StringBuilder result = new StringBuilder();
 
@@ -39,18 +44,39 @@ public class DrawChessBoard {
         return result.toString();
     }
 
+    /**
+     *
+     * @param piece object at center
+     * @return that square
+     */
     private static String darkSquare(String piece) {
         return (darkTileColor + piece + RESET_BG_COLOR);
     }
 
+    /**
+     *
+     * @param piece object at center
+     * @return that square
+     */
     private static String lightSquare(String piece) {
         return (lightTileColor + piece + RESET_BG_COLOR);
     }
 
+    /**
+     *
+     * @param piece object at center
+     * @return that square
+     */
     private static String edgeSquare(String piece) {
         return (edgeTileColor + piece + RESET_BG_COLOR);
     }
 
+    /**
+     *
+     * @param row target row
+     * @param col target col
+     * @return the appreciate filled square for row, col
+     */
     private static String buildingLoop(int row, int col) {
         if (row == 0 || col == 0 || row == 9 || col == 9) {
             return edgeSquare(edgeCharacterDeterminer(row, col));
@@ -63,6 +89,12 @@ public class DrawChessBoard {
         }
     }
 
+    /**
+     *
+     * @param row target row
+     * @param col target col
+     * @return what piece goes in the space, if any
+     */
     private static String determinePiece(int row, int col) {
         ChessPiece chessPiece = ChessGame.getBoard().getPiece(new ChessPosition(row, col));
         if (chessPiece == null) {
@@ -99,7 +131,12 @@ public class DrawChessBoard {
         return result.toString();
     }
 
-
+    /**
+     *
+     * @param row target row
+     * @param col target col
+     * @return the numbers/letters for the outside
+     */
     private static String edgeCharacterDeterminer(int row, int col) {
         int dif = row - col;
         if (dif == 0 || dif == 9 || dif == -9) {

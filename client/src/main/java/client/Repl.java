@@ -23,6 +23,9 @@ public class Repl {
         drawChessBoard = new DrawChessBoard(chessGame);
     }
 
+    /**
+     * The main repl function, SM to switch between layers
+     */
     public void replMain() {
         System.out.println(SET_TEXT_ITALIC + SET_TEXT_COLOR_RED + "      Welcome!\n" + RESET_TEXT_ITALIC);
         //System.out.println(DrawChessBoard.drawBoard("black"));
@@ -36,6 +39,9 @@ public class Repl {
         }
     }
 
+    /**
+     * Pre login script
+     */
     public void preLogin() {
         if (state != State.LOGGEDOUT) {
             System.out.println(preLoginColor + client.help());
@@ -56,6 +62,9 @@ public class Repl {
         System.out.println();
     }
 
+    /**
+     * post login script
+     */
     public void postLogin() {
         if (state != State.LOGGEDIN) {
             System.out.println(postLoginColor + client.help());
@@ -76,10 +85,11 @@ public class Repl {
         System.out.println();
     }
 
+    /**
+     * gameplay script
+     */
     public void gameplay() {
-        //System.out.println(inGameColor + "Printing board");
         System.out.println(DrawChessBoard.drawBoard(ChessClient.getPlayerColor()));
-        //System.out.println(ChessClient.getPlayerColor());
         if (state != State.INGAME) {
             System.out.println(inGameColor + client.help());
             state = State.INGAME;

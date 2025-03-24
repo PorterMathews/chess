@@ -25,6 +25,11 @@ public class ChessClient {
         errorMsg = "";
     }
 
+    /**
+     *
+     * @param input The incoming command
+     * @return The outcome of the command
+     */
     public String eval(String input) {
         try {
             var tokens = input.split(" ");
@@ -48,6 +53,12 @@ public class ChessClient {
         }
     }
 
+    /**
+     *
+     * @param params username, password, and email
+     * @return The status of the registration
+     * @throws ResponseException Used for bad inputs
+     */
     public String register(String... params) throws ResponseException {
         if (params.length == 3 && state == State.LOGGEDOUT) {
             UserData userData = new UserData(params[0], params[1], params[2]);
@@ -59,7 +70,7 @@ public class ChessClient {
                     errorMsg = "";
                     errorMsg = e.getMessage();
                 }
-                throw new ResponseException(400, "Username already taken: " + errorMsg);
+                throw new ResponseException(400, "Username already taken " + errorMsg);
             }
             state = State.LOGGEDIN;
             userName = params[0];
@@ -72,6 +83,12 @@ public class ChessClient {
         throw new ResponseException(400,"Expected: <username> <password> <email>");
     }
 
+    /**
+     *
+     * @param params username, password
+     * @return The status of the login
+     * @throws ResponseException Used for bad inputs
+     */
     public String login(String... params) throws ResponseException {
         if (params.length == 2 && state == State.LOGGEDOUT) {
             UserData userData = new UserData(params[0], params[1], null);
@@ -96,6 +113,11 @@ public class ChessClient {
         throw new ResponseException(400, "Expected: <username> <password>");
     }
 
+    /**
+     *
+     * @return The status of the logout
+     * @throws ResponseException Used for bad inputs
+     */
     public String logout() throws ResponseException {
         if (state != State.LOGGEDOUT) {
             try {
@@ -114,6 +136,12 @@ public class ChessClient {
         throw new ResponseException(400, "Not logged in");
     }
 
+    /**
+     *
+     * @param params the name of the game
+     * @return the status of the creation
+     * @throws ResponseException Used for bad inputs
+     */
     public String create(String... params) throws ResponseException {
         if (params.length == 1 && state == State.LOGGEDIN) {
             int gameID;
@@ -138,6 +166,11 @@ public class ChessClient {
         throw new ResponseException(400, "Expected: <game name>");
     }
 
+    /**
+     *
+     * @return the status of getting the list
+     * @throws ResponseException Used for bad inputs
+     */
     public String list() throws ResponseException {
         if (state == State.LOGGEDIN) {
             List<GameData> gameList;
@@ -158,6 +191,12 @@ public class ChessClient {
         throw new ResponseException(400, "please log in first");
     }
 
+    /**
+     *
+     * @param params game number from list, desired color
+     * @return status of the join
+     * @throws ResponseException Used for bad inputs
+     */
     public String join(String... params) throws ResponseException {
         debug("joining game");
         if (params.length == 2 && state == State.LOGGEDIN && isInteger(params[0])) {
@@ -208,6 +247,12 @@ public class ChessClient {
         throw new ResponseException(400, "Expected: <gameID> <white|black>");
     }
 
+    /**
+     *
+     * @param params game number from list
+     * @return the status of the observation request
+     * @throws ResponseException Used for bad inputs
+     */
     public String observe(String... params) throws ResponseException {
         if (params.length == 1 && state == State.LOGGEDIN && isInteger(params[0])) {
             int game = Integer.parseInt(params[0]);
@@ -236,6 +281,12 @@ public class ChessClient {
         throw new ResponseException(400, "Back, back to where? Try quit instead");
     }
 
+    /**
+     *
+     * @param params the password
+     * @return the status of the clear
+     * @throws ResponseException Used for bad inputs
+     */
     public String clear(String... params) throws ResponseException {
         if (params.length == 1 && params[0].equals("1")) {
             try {
@@ -252,6 +303,10 @@ public class ChessClient {
         throw new ResponseException(400, "No");
     }
 
+    /**
+     *
+     * @return options for different states
+     */
     public String help() {
         if (state == State.LOGGEDOUT) {
             return """
@@ -277,6 +332,10 @@ public class ChessClient {
                 - "quit" - exits program""";
     }
 
+    /**
+     * Keeps games up to date in ID_LOOKUP
+     * @throws ResponseException
+     */
     private void reloadGameIDs() throws ResponseException {
         List<GameData> list;
         try {
@@ -302,6 +361,11 @@ public class ChessClient {
         }
     }
 
+    /**
+     *
+     * @param input string to be tested if integer
+     * @return true if integer, else false
+     */
     public static boolean isInteger(String input) {
         try {
             Integer.parseInt(input);
@@ -311,6 +375,13 @@ public class ChessClient {
         }
     }
 
+    /**
+     *
+     * @param list list of games in DB
+     * @param gameID game ID you are searching for
+     * @param playerColour The color you are checking against
+     * @return true if the current player is  playerColor in that game, else false
+     */
     private boolean alreadyPartOfGame(List<GameData> list, int gameID, String playerColour) {
         if (playerColour == null) {
             return false;
@@ -332,7 +403,12 @@ public class ChessClient {
         return false;
     }
 
-    private String listFormater(List<GameData> list) throws ResponseException {
+    /**
+     *
+     * @param list list of game from the DB
+     * @return a formated list of game for the list method
+     */
+    private String listFormater(List<GameData> list) {
         if (list.isEmpty()) {
             return "No Games";
         }
@@ -353,6 +429,11 @@ public class ChessClient {
         return result.toString();
     }
 
+    /**
+     *
+     * @param playerUsername the username to be checked if null
+     * @return "No user joined" if playerUsername in null, else playerUsername
+     */
     private String nullToString(String playerUsername) {
         if (playerUsername == null) {
             return "No user joined";
@@ -360,18 +441,34 @@ public class ChessClient {
         return playerUsername;
     }
 
+    /**
+     *
+     * @return the State for the Repl
+     */
     public static State getState() {
         return state;
     }
 
+    /**
+     *
+     * @return player color for drawing board
+     */
     public static String getPlayerColor() {
         return playerColor;
     }
 
+    /**
+     *
+     * @return the active Username
+     */
     public static String getUsername() {
         return userName;
     }
 
+    /**
+     * Prints only if detailed messaging is on
+     * @param input string to be printed
+     */
     private void debug(String input) {
         if (detailedErrorMsg) {
             System.out.println(input);

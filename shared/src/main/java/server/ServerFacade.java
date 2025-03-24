@@ -16,43 +16,95 @@ public class ServerFacade {
         serverUrl = url;
     }
 
+    /**
+     *
+     * @throws ResponseException if call comes back bad
+     */
     public void clearDatabase() throws ResponseException {
         var path = "/db";
         this.makeRequest("DELETE", path,null, null, null);
     }
 
+    /**
+     *
+     * @param userData data to be registered
+     * @return AuthData for user
+     * @throws ResponseException if call comes back bad
+     */
     public AuthData register(UserData userData) throws ResponseException {
         var path = "/user";
         return this.makeRequest("POST", path,null, userData, AuthData.class);
     }
 
+    /**
+     *
+     * @param userData data from user attempting to login
+     * @return AuthData for the user
+     * @throws ResponseException if call comes back bad
+     */
     public AuthData login(UserData userData) throws ResponseException {
         var path = "/session";
         return this.makeRequest("POST", path,null, userData, AuthData.class);
     }
 
+    /**
+     *
+     * @param authToken use to make sure they are a user
+     * @throws ResponseException if call comes back bad
+     */
     public void logout(String authToken) throws ResponseException {
         var path = "/session";
         this.makeRequest("DELETE", path,authToken, null, null);
     }
 
+    /**
+     *
+     * @param authToken used for verification
+     * @param gameName name of the new game
+     * @return gameID for new game
+     * @throws ResponseException if call comes back bad
+     */
     public int crateGame(String authToken, String gameName) throws ResponseException {
         var path = "/game";
         CreateGameResponse result = makeRequest("POST", path, authToken, new CreateGameRequest(gameName), CreateGameResponse.class);
         return result.gameID;
     }
 
+    /**
+     *
+     * @param authToken used for verification
+     * @param playerColor color player is trying to play as
+     * @param gameID ID of game in DB
+     * @throws ResponseException if call comes back bad
+     */
     public void joinGame(String authToken, String playerColor, int gameID) throws ResponseException {
         var path = "/game";
         this.makeRequest("PUT", path, authToken, new JoinGameRequest(playerColor, gameID), null);
     }
 
+    /**
+     *
+     * @param authToken used for verification
+     * @return a list of games
+     * @throws ResponseException if call comes back bad
+     */
     public List<GameData> listGames(String authToken) throws ResponseException {
         var path = "/game";
         GameListResponse result = makeRequest("GET", path, authToken, null, GameListResponse.class);
         return result.games;
     }
 
+    /**
+     * heart of making requests, does all the formating
+     * @param method API being called
+     * @param path Path in API
+     * @param authToken authToken to go in Header
+     * @param requestBody request data
+     * @param responseClass What we expect to get back as a response
+     * @return the response
+     * @param <T> ??
+     * @throws ResponseException if call comes back bad
+     */
     private <T> T makeRequest(String method, String path,String authToken, Object requestBody, Class<T> responseClass) throws ResponseException  {
         try {
             URL url = (new URI(serverUrl + path)).toURL();
@@ -72,6 +124,12 @@ public class ServerFacade {
         }
     }
 
+    /**
+     *
+     * @param request the request body
+     * @param http the http
+     * @throws IOException if call comes back bad
+     */
     private static void writeBody(Object request, HttpURLConnection http) throws IOException {
         if (request != null) {
             http.addRequestProperty("Content-Type", "application/json");
@@ -82,6 +140,12 @@ public class ServerFacade {
         }
     }
 
+    /**
+     *
+     * @param http the http
+     * @throws IOException if call comes back bad
+     * @throws ResponseException if call comes back bad
+     */
     private void throwIfNotSuccessful(HttpURLConnection http) throws IOException, ResponseException {
         var status = http.getResponseCode();
         if (!isSuccessful(status)) {
@@ -95,6 +159,14 @@ public class ServerFacade {
         }
     }
 
+    /**
+     *
+     * @param http the http
+     * @param responseClass the thing we got back
+     * @return the stuff of the response body
+     * @param <T> ??
+     * @throws IOException if call comes back bad
+     */
     private static <T> T readBody(HttpURLConnection http, Class<T> responseClass) throws IOException {
         T response = null;
         if (http.getContentLength() < 0) {
@@ -113,12 +185,18 @@ public class ServerFacade {
     }
 }
 
+/**
+ * Creates a game request
+ */
 class CreateGameRequest {
     String gameName;
     public CreateGameRequest(String gameName) {
         this.gameName = gameName; }
 }
 
+/**
+ * Creates a join Request
+ */
 class JoinGameRequest {
     String playerColor;
     int gameID;
@@ -128,10 +206,16 @@ class JoinGameRequest {
     }
 }
 
+/**
+ * Creates a list response
+ */
 class GameListResponse {
     public List<GameData> games;
 }
 
+/**
+ * Creates a game response
+ */
 class CreateGameResponse {
     public int gameID;
 }
