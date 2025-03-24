@@ -79,7 +79,7 @@ public class Repl {
     public void gameplay() {
         //System.out.println(inGameColor + "Printing board");
         System.out.println(DrawChessBoard.drawBoard(ChessClient.getPlayerColor()));
-        System.out.println(ChessClient.getPlayerColor());
+        //System.out.println(ChessClient.getPlayerColor());
         if (state != State.INGAME) {
             System.out.println(inGameColor + client.help());
             state = State.INGAME;
@@ -102,7 +102,7 @@ public class Repl {
     }
 
     private void printPromptLogin() {
-        System.out.print("\n" + gameColor + "[Logged in] >>> ");
+        System.out.print("\n" + gameColor + "[Logged in as "+ChessClient.getUsername()+"] >>> ");
     }
 
     private void printPromptInGame() {

@@ -9,7 +9,7 @@ import exception.ResponseException;
 import server.ServerFacade;
 
 public class ChessClient {
-    private String userName = null;
+    private static String userName = null;
     private String authToken = null;
     private final ServerFacade server;
     private final String serverUrl;
@@ -33,11 +33,11 @@ public class ChessClient {
             return switch (cmd) {
                 case "register", "reg", "r" -> register(params);
                 case "login", "in", "i" -> login(params);
-                case "logout", "out", "o" -> logout();
+                case "logout", "out" -> logout();
                 case "create", "c" -> create(params);
                 case "list", "ll", "ls", "l" -> list();
                 case "join", "j" -> join(params);
-                case "observe", "view", "ob" -> observe(params);
+                case "observe", "view", "ob", "o" -> observe(params);
                 case "back", "b" -> back();
                 case "db", "erase" -> clear(params);
                 case "quit", "q", ":q" -> "quit";
@@ -63,6 +63,7 @@ public class ChessClient {
             }
             state = State.LOGGEDIN;
             userName = params[0];
+            reloadGameIDs();
             return String.format("You registered as %s.", userName);
         }
         if (state != State.LOGGEDOUT) {
@@ -86,6 +87,7 @@ public class ChessClient {
             }
             state = State.LOGGEDIN;
             userName = params[0];
+            reloadGameIDs();
             return String.format("Success! Logged in as " + userName);
         }
         if (state != State.LOGGEDOUT) {
@@ -159,10 +161,14 @@ public class ChessClient {
     public String join(String... params) throws ResponseException {
         debug("joining game");
         if (params.length == 2 && state == State.LOGGEDIN && isInteger(params[0])) {
+            int game = Integer.parseInt(params[0]);
+            String passedPlayerColor = params[1].toLowerCase();
+            if (game > ID_LOOKUP.size() || game < 1) {
+                throw new ResponseException(400, "Invalid game");
+            }
             List<GameData> gameList;
             try {
                 gameList = server.listGames(authToken);
-                listFormater(gameList);
             } catch (ResponseException e) {
                 if (detailedErrorMsg) {
                     errorMsg = "";
@@ -170,18 +176,14 @@ public class ChessClient {
                 }
                 throw new ResponseException(400, "Unable to generate list " + errorMsg);
             }
+            reloadGameIDs();
             debug("looking up gameID");
-            int gameID;
-            try {
-                gameID = ID_LOOKUP.get(Integer.parseInt(params[0]));
-            } catch (NumberFormatException e) {
-                throw new ResponseException(400, "Unable to join game");
-            }
-            //checking if they are already part of the game
+            int gameID = ID_LOOKUP.get(game);
             //debug("checking if part of game: " + gameID);
-            if (alreadyPartOfGame(gameList, gameID, params[1])) {
+            if (alreadyPartOfGame(gameList, gameID, passedPlayerColor)) {
                 state = State.INGAME;
                 playerColor = params[1];
+                //DrawChessBoard.drawBoard(playerColor);
                 return String.format("Rejoining game " +params[0]+ " as " + params[1] + " player");
             }
             else {
@@ -207,18 +209,14 @@ public class ChessClient {
     }
 
     public String observe(String... params) throws ResponseException {
-        if (params.length == 1 && state == State.LOGGEDIN) {
-            try {
-                server.joinGame(authToken, params[1], Integer.parseInt(params[0]));
-            } catch (ResponseException e) {
-                if (detailedErrorMsg) {
-                    errorMsg = "";
-                    errorMsg = e.getMessage();
-                }
-                throw new ResponseException(400, "Unable to join game " + errorMsg);
+        if (params.length == 1 && state == State.LOGGEDIN && isInteger(params[0])) {
+            int game = Integer.parseInt(params[0]);
+            if (game > ID_LOOKUP.size() || game < 1) {
+                throw new ResponseException(400, "Invalid game");
             }
             state = State.INGAME;
             playerColor = "white";
+            //DrawChessBoard.drawBoard(playerColor);
             return String.format("observing game " + params[0]);
         }  else if (state == State.INGAME) {
             throw new ResponseException(400, "please exit game first");
@@ -279,6 +277,31 @@ public class ChessClient {
                 - "quit" - exits program""";
     }
 
+    private void reloadGameIDs() throws ResponseException {
+        List<GameData> list;
+        try {
+            list = server.listGames(authToken);
+        } catch (ResponseException e) {
+            if (detailedErrorMsg) {
+                errorMsg = "";
+                errorMsg = e.getMessage();
+            }
+            throw new ResponseException(400, "Unable to generate list: " + errorMsg);
+        }
+        if (list.isEmpty()) {
+            return;
+        }
+        int i = 0;
+        ID_LOOKUP.clear();
+        while (i < list.size()) {
+            GameData gameData;
+            gameData = list.get(i);
+            i++;
+            debug("adding to ID_LOOKUP: " + i + " and " + gameData.gameID());
+            ID_LOOKUP.put(i , gameData.gameID());
+        }
+    }
+
     public static boolean isInteger(String input) {
         try {
             Integer.parseInt(input);
@@ -289,7 +312,6 @@ public class ChessClient {
     }
 
     private boolean alreadyPartOfGame(List<GameData> list, int gameID, String playerColour) {
-        System.out.println("checking if part of game");
         if (playerColour == null) {
             return false;
         }
@@ -320,15 +342,11 @@ public class ChessClient {
         ID_LOOKUP.clear();
         while (i < list.size()) {
             GameData gameData;
-            try {
             gameData = list.get(i);
             result.append(String.format(i+1 + ". Name: " + gameData.gameName() +
                     ", Black username: " + nullToString(gameData.blackUsername()) +
                     ", White username: " + nullToString(gameData.whiteUsername()) + "\n"));
-            i++;}
-            catch (NumberFormatException e) {
-                    throw new ResponseException(400, "Unable to find game number");
-                }
+            i++;
             debug("adding to ID_LOOKUP: " + i + " and " + gameData.gameID());
             ID_LOOKUP.put(i , gameData.gameID());
         }
@@ -342,18 +360,16 @@ public class ChessClient {
         return playerUsername;
     }
 
-    private void assertSignedIn() throws ResponseException {
-        if (state == State.LOGGEDOUT) {
-            throw new ResponseException(400, "You must sign in");
-        }
-    }
-
     public static State getState() {
         return state;
     }
 
     public static String getPlayerColor() {
         return playerColor;
+    }
+
+    public static String getUsername() {
+        return userName;
     }
 
     private void debug(String input) {
