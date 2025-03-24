@@ -14,6 +14,7 @@ public class Repl {
     private static final String postLoginColor = SET_TEXT_COLOR_MAGENTA;
     private static final String inGameColor = SET_TEXT_COLOR_BLUE;
     private static final String gameColor = SET_TEXT_COLOR_LIGHT_GREY;
+    private static State state;
 
 
     public Repl(String serverUrl) {
@@ -36,14 +37,18 @@ public class Repl {
     }
 
     public void preLogin() {
-        System.out.print(preLoginColor + "Please, sign in or register");
+        if (state != State.LOGGEDOUT) {
+            System.out.println(preLoginColor + client.help());
+            state = State.LOGGEDOUT;
+        }
+        System.out.println(preLoginColor + "Please, sign in or register");
         printPromptLogout();
 
         String line = scanner.nextLine();
 
         try {
             result = client.eval(line);
-            System.out.print(preLoginColor + result);
+            System.out.println(preLoginColor + result);
         } catch (Throwable e) {
             var msg = e.toString();
             System.out.print(msg);
@@ -52,14 +57,18 @@ public class Repl {
     }
 
     public void postLogin() {
-        System.out.print(postLoginColor + "Please, join or create a game");
+        if (state != State.LOGGEDIN) {
+            System.out.println(postLoginColor + client.help());
+            state = State.LOGGEDIN;
+        }
+        System.out.println(postLoginColor + "Please, join or create a game");
         printPromptLogin();
 
         String line = scanner.nextLine();
 
         try {
             result = client.eval(line);
-            System.out.print(postLoginColor + result);
+            System.out.println(postLoginColor + result);
         } catch (Throwable e) {
             var msg = e.toString();
             System.out.print(msg);
@@ -68,8 +77,13 @@ public class Repl {
     }
 
     public void gameplay() {
-        System.out.print(inGameColor + "Printing board");
+        //System.out.println(inGameColor + "Printing board");
         System.out.println(DrawChessBoard.drawBoard(ChessClient.getPlayerColor()));
+        System.out.println(ChessClient.getPlayerColor());
+        if (state != State.INGAME) {
+            System.out.println(inGameColor + client.help());
+            state = State.INGAME;
+        }
         printPromptInGame();
         String line = scanner.nextLine();
 
