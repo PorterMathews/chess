@@ -22,8 +22,15 @@ public class Repl {
         System.out.print(SET_TEXT_ITALIC + SET_TEXT_COLOR_RED + "      Welcome!\n\n" + RESET_TEXT_ITALIC);
 
         System.out.print(ERASE_SCREEN);
-        System.out.print(DrawChessBoard.drawBoard());
+        System.out.println(DrawChessBoard.drawBoard());
 
+        while (!result.equals("quit")) {
+            switch (ChessClient.getState()) {
+                case LOGGEDIN -> postLogin();
+                case INGAME -> gameplay();
+                default -> preLogin();
+            }
+        }
     }
 
     public void preLogin() {
