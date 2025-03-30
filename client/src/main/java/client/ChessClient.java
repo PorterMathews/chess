@@ -255,6 +255,7 @@ public class ChessClient {
      */
     public String observe(String... params) throws ResponseException {
         if (params.length == 1 && state == State.LOGGEDIN && isInteger(params[0])) {
+            reloadGameIDs();
             int game = Integer.parseInt(params[0]);
             if (game > ID_LOOKUP.size() || game < 1) {
                 throw new ResponseException(400, "Invalid game");
