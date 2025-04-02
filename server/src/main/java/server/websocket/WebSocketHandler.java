@@ -1,16 +1,14 @@
 package server.websocket;
 
 import com.google.gson.Gson;
-import dataaccess.*;
 import exception.ResponseException;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
-import messages.Action;
-import messages.Notification;
+import websocket.messages.Action;
+import websocket.messages.Notification;
 
 import java.io.IOException;
-import java.util.Timer;
 
 
 @WebSocket
