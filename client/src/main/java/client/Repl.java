@@ -3,6 +3,8 @@ package client;
 import java.util.Scanner;
 import static ui.EscapeSequences.*;
 import chess.*;
+import client.websocket.NotificationHandler;
+import webSocketMessages.Notification;
 
 public class Repl {
     private final ChessClient client;

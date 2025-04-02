@@ -7,6 +7,8 @@ import java.util.List;
 import model.*;
 import exception.ResponseException;
 import server.ServerFacade;
+import client.websocket.NotificationHandler;
+import client.websocket.WebSocketFacade;
 
 public class ChessClient {
     private static String userName = null;
