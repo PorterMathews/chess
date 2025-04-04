@@ -3,8 +3,7 @@ package server.websocket;
 import com.google.gson.Gson;
 import exception.ResponseException;
 import org.eclipse.jetty.websocket.api.Session;
-import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
-import org.eclipse.jetty.websocket.api.annotations.WebSocket;
+import org.eclipse.jetty.websocket.api.annotations.*;
 import websocket.messages.Action;
 import websocket.messages.Notification;
 
