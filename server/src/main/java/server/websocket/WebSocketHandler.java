@@ -20,9 +20,55 @@ public class WebSocketHandler {
     public void onMessage(Session session, String message) throws IOException {
         Action action = new Gson().fromJson(message, Action.class);
         switch (action.type()) {
-            case ENTER -> enter(action.visitorName(), session);
-            case EXIT -> exit(action.visitorName());
+            case DEPARTURE -> departure();
+            case PLAYERJOIN -> playerJoin(action.userName(), action.playerColor(), session);
+            case OBSERVERJOIN -> observerJoin();
+            case MOVEMADE ->  moveMade();
+            case PLAYERLEFT -> playerLeft();
+            case OBSERVERLEFT -> observerLeft();
+            case PLAYERRESIGNED -> playerResigned();
+            case CHECK -> check();
+            case CHECKMATE -> checkMate();
         }
+    }
+
+    private void departure() throws IOException {
+
+    }
+
+    private void playerJoin(String userName, String playerColor, Session session) throws IOException {
+        connections.add(userName, session);
+        var message = String.format(userName + " has joined the game as the " + playerColor + " player");
+        var notification = new Notification(Notification.Type.PLAYERJOIN, message);
+        connections.broadcast(userName, notification);
+    }
+
+    private void observerJoin() throws IOException {
+
+    }
+
+    private void moveMade() throws IOException {
+
+    }
+
+    private void playerLeft() throws IOException {
+
+    }
+
+    private void observerLeft() throws IOException {
+
+    }
+
+    private void playerResigned() throws IOException {
+
+    }
+
+    private void check() throws IOException {
+
+    }
+
+    private void checkMate() throws IOException {
+
     }
 
     private void enter(String visitorName, Session session) throws IOException {

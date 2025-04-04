@@ -2,6 +2,6 @@ package client.websocket;
 
 import websocket.messages.Notification;
 
-public class NotificationHandler {
-    void notify(Notification notification){}
+public interface NotificationHandler {
+    void notify(Notification notification);
 }

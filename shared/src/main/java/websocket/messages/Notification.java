@@ -2,6 +2,7 @@ package websocket.messages;
 
 import com.google.gson.Gson;
 
+//perhaps don't need the extras
 public record Notification(Type type, String message) {
     public enum Type {
         ARRIVAL,

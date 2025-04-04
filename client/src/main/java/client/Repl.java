@@ -4,9 +4,9 @@ import java.util.Scanner;
 import static ui.EscapeSequences.*;
 import chess.*;
 import client.websocket.NotificationHandler;
-import webSocketMessages.Notification;
+import websocket.messages.Notification;
 
-public class Repl {
+public class Repl implements NotificationHandler  {
     private final ChessClient client;
     Scanner scanner = new Scanner(System.in);
     private String result;
@@ -19,8 +19,8 @@ public class Repl {
     private static State state;
 
 
-    public Repl(String serverUrl) {
-        client = new ChessClient(serverUrl);
+    public Repl(String serverUrl){
+        client = new ChessClient(serverUrl, this);
         result = "";
         drawChessBoard = new DrawChessBoard(chessGame);
     }
@@ -119,5 +119,10 @@ public class Repl {
 
     private void printPromptInGame() {
         System.out.print("\n" + GAME_COLOR + "[In game] >>> ");
+    }
+
+    public void notify(Notification notification) {
+        System.out.println(GAME_COLOR + notification.message());
+        printPromptLogout();
     }
 }

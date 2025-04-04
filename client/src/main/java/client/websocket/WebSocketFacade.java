@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-public class WebSocketFacade {
+public class WebSocketFacade extends Endpoint {
 
     Session session;
     NotificationHandler notificationHandler;
@@ -43,9 +43,20 @@ public class WebSocketFacade {
     public void onOpen(Session session, EndpointConfig endpointConfig) {
     }
 
+    public void playerJoinsGame(String username, String playerColor) throws ResponseException {
+        try {
+            var action = new Action(Action.Type.PLAYERJOIN, username, playerColor);
+            this.session.getBasicRemote().sendText(new Gson().toJson(action));
+            this.session.close();
+        } catch (IOException ex) {
+            throw new ResponseException(500, ex.getMessage());
+        }
+    }
+
+
     public void enterPetShop(String visitorName) throws ResponseException {
         try {
-            var action = new Action(Action.Type.ENTER, visitorName);
+            var action = new Action(Action.Type.ENTER, visitorName, "Smurf");
             this.session.getBasicRemote().sendText(new Gson().toJson(action));
         } catch (IOException ex) {
             throw new ResponseException(500, ex.getMessage());
@@ -54,7 +65,7 @@ public class WebSocketFacade {
 
     public void leavePetShop(String visitorName) throws ResponseException {
         try {
-            var action = new Action(Action.Type.EXIT, visitorName);
+            var action = new Action(Action.Type.EXIT, visitorName, "Smurf");
             this.session.getBasicRemote().sendText(new Gson().toJson(action));
             this.session.close();
         } catch (IOException ex) {

@@ -20,9 +20,12 @@ public class ChessClient {
     private final boolean detailedErrorMsg = false;
     private String errorMsg;
     private static final HashMap<Integer, Integer> ID_LOOKUP = new HashMap<>();
+    private final NotificationHandler notificationHandler;
+    private WebSocketFacade ws;
 
-    public ChessClient(String serverUrl) {
+    public ChessClient(String serverUrl, NotificationHandler notificationHandler) {
         this.serverUrl = serverUrl;
+        this.notificationHandler = notificationHandler;
         server = new ServerFacade(serverUrl);
         errorMsg = "";
     }
@@ -222,6 +225,8 @@ public class ChessClient {
             int gameID = ID_LOOKUP.get(game);
             //debug("checking if part of game: " + gameID);
             if (alreadyPartOfGame(gameList, gameID, passedPlayerColor)) {
+                ws = new WebSocketFacade(serverUrl, notificationHandler);
+                ws.playerJoinsGame(params[0], params[1]);
                 state = State.INGAME;
                 playerColor = params[1];
                 //DrawChessBoard.drawBoard(playerColor);
@@ -238,6 +243,8 @@ public class ChessClient {
                     throw new ResponseException(400, "Unable to join game " + errorMsg);
                 }
             }
+            ws = new WebSocketFacade(serverUrl, notificationHandler);
+            ws.playerJoinsGame(params[0], params[1]);
             state = State.INGAME;
             playerColor = params[1];
             return String.format("Joined game " +params[0]+ " as " + params[1] + " player");
