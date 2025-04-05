@@ -11,22 +11,20 @@ import client.websocket.NotificationHandler;
 import client.websocket.WebSocketFacade;
 
 public class GameClient {
-    private static String userName = null;
-    private String authToken = null;
     private final ServerFacade server;
     private final String serverUrl;
-    private static State state = State.LOGGEDOUT;
-    private static String playerColor;
     private final boolean detailedErrorMsg = false;
     private String errorMsg;
     private static final HashMap<Integer, Integer> ID_LOOKUP = new HashMap<>();
     private final NotificationHandler notificationHandler;
     private WebSocketFacade ws;
+    private LoggedInClient postClient;
 
-    public GameClient(String serverUrl, NotificationHandler notificationHandler) {
+    public GameClient(String serverUrl, LoggedInClient postClient, NotificationHandler notificationHandler) {
         this.serverUrl = serverUrl;
         this.notificationHandler = notificationHandler;
         server = new ServerFacade(serverUrl);
+        this.postClient = postClient;
         errorMsg = "";
     }
 
@@ -57,7 +55,7 @@ public class GameClient {
     }
 
     public String redraw() throws ResponseException {
-        return "";
+        return DrawChessBoard.drawBoard(postClient.getPlayerColor());
     }
 
     public String highlight(String... params) throws ResponseException {
@@ -65,10 +63,10 @@ public class GameClient {
     }
 
     public String back() throws ResponseException {
-        if (state == State.INGAME) {
-            state = State.LOGGEDIN;
+        if (Repl.getState().equals(State.INGAME)) {
+            Repl.setState(State.LOGGEDIN);
             return "Taking you back";
-        } else if (state == State.LOGGEDIN) {
+        } else if (Repl.getState().equals(State.LOGGEDIN)) {
             throw new ResponseException(400, "please use logout instead");
         }
         throw new ResponseException(400, "Back, back to where? Try quit instead");
@@ -97,8 +95,8 @@ public class GameClient {
                 errorMsg = e.getMessage();
                 throw new ResponseException(400, "Unable to clearDB: " + errorMsg);
             }
-            state = State.LOGGEDOUT;
-            authToken = null;
+            Repl.setState(State.LOGGEDOUT);
+            LoggedInClient.setAuthToken(null);
             return "db cleared";
         }
         throw new ResponseException(400, "No");

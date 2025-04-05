@@ -18,13 +18,14 @@ public class Repl implements NotificationHandler  {
     private static final String POST_LOGIN_COLOR = SET_TEXT_COLOR_MAGENTA;
     private static final String IN_GAME_COLOR = SET_TEXT_COLOR_BLUE;
     private static final String GAME_COLOR = SET_TEXT_COLOR_LIGHT_GREY;
-    private static State state;
+    private static State state = State.LOGGEDOUT;
+    private static boolean prompt = true;
 
 
     public Repl(String serverUrl){
-        preClient = new ChessClient(serverUrl, this);
         postClient = new LoggedInClient(serverUrl, this);
-        gameClient = new GameClient(serverUrl, this);
+        gameClient = new GameClient(serverUrl, postClient, this);
+        preClient = new ChessClient(serverUrl, postClient);
         result = "";
         drawChessBoard = new DrawChessBoard(chessGame);
     }
@@ -37,10 +38,10 @@ public class Repl implements NotificationHandler  {
         //System.out.println(DrawChessBoard.drawBoard("black"));
 
         while (!result.equals("quit")) {
-            switch (ChessClient.getState()) {
+            switch (state) {
+                case LOGGEDOUT -> preLogin();
                 case LOGGEDIN -> postLogin();
-                case INGAME -> gameplay();
-                default -> preLogin();
+                default -> gameplay();
             }
         }
     }
@@ -49,9 +50,9 @@ public class Repl implements NotificationHandler  {
      * Pre login script
      */
     public void preLogin() {
-        if (state != State.LOGGEDOUT) {
+        if (prompt) {
             System.out.println(PRE_LOGIN_COLOR + preClient.help());
-            state = State.LOGGEDOUT;
+            prompt = false;
         }
         System.out.println(PRE_LOGIN_COLOR + "Please, sign in or register");
         printPromptLogout();
@@ -72,9 +73,9 @@ public class Repl implements NotificationHandler  {
      * post login script
      */
     public void postLogin() {
-        if (state != State.LOGGEDIN) {
-            System.out.println(POST_LOGIN_COLOR + preClient.help());
-            state = State.LOGGEDIN;
+        if (prompt) {
+            System.out.println(POST_LOGIN_COLOR + postClient.help());
+            prompt = false;
         }
         System.out.println(POST_LOGIN_COLOR + "Please, join or create a game");
         printPromptLogin();
@@ -95,16 +96,17 @@ public class Repl implements NotificationHandler  {
      * gameplay script
      */
     public void gameplay() {
-        System.out.println(DrawChessBoard.drawBoard(ChessClient.getPlayerColor()));
-        if (state != State.INGAME) {
-            System.out.println(IN_GAME_COLOR + preClient.help());
-            state = State.INGAME;
+
+        if (prompt) {
+            System.out.println(IN_GAME_COLOR + gameClient.help());
+            System.out.println(DrawChessBoard.drawBoard(LoggedInClient.getPlayerColor()));
+            prompt = false;
         }
         printPromptInGame();
         String line = scanner.nextLine();
 
         try {
-            result = preClient.eval(line);
+            result = gameClient.eval(line);
             System.out.print(IN_GAME_COLOR + result);
         } catch (Throwable e) {
             var msg = e.toString();
@@ -118,7 +120,7 @@ public class Repl implements NotificationHandler  {
     }
 
     private void printPromptLogin() {
-        System.out.print("\n" + GAME_COLOR + "[Logged in as "+ChessClient.getUsername()+"] >>> ");
+        System.out.print("\n" + GAME_COLOR + "[Logged in as "+LoggedInClient.getUsername()+"] >>> ");
     }
 
     private void printPromptInGame() {
@@ -128,5 +130,17 @@ public class Repl implements NotificationHandler  {
     public void notify(Notification notification) {
         System.out.println(GAME_COLOR + notification.message());
         printPromptLogout();
+    }
+
+    public static void setState(State s) {
+        state = s;
+    }
+
+    public static State getState() {
+        return state;
+    }
+
+    public static void setPrompt() {
+        prompt = true;
     }
 }

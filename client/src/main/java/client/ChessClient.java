@@ -1,32 +1,21 @@
 package client;
 
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-
 import model.*;
 import exception.ResponseException;
 import server.ServerFacade;
-import client.websocket.NotificationHandler;
-import client.websocket.WebSocketFacade;
 
 public class ChessClient {
-    private static String userName = null;
-    private String authToken = null;
     private final ServerFacade server;
     private final String serverUrl;
-    private static State state = State.LOGGEDOUT;
-    private static String playerColor;
     private final boolean detailedErrorMsg = false;
     private String errorMsg;
-    private static final HashMap<Integer, Integer> ID_LOOKUP = new HashMap<>();
-    private final NotificationHandler notificationHandler;
-    private WebSocketFacade ws;
+    private LoggedInClient postClient;
 
-    public ChessClient(String serverUrl, NotificationHandler notificationHandler) {
+    public ChessClient(String serverUrl, LoggedInClient postClient) {
         this.serverUrl = serverUrl;
-        this.notificationHandler = notificationHandler;
         server = new ServerFacade(serverUrl);
+        this.postClient = postClient;
         errorMsg = "";
     }
 
@@ -59,7 +48,7 @@ public class ChessClient {
      * @throws ResponseException Used for bad inputs
      */
     public String register(String... params) throws ResponseException {
-        if (params.length == 3 && state == State.LOGGEDOUT) {
+        if (params.length == 3 && Repl.getState().equals(State.LOGGEDOUT)) {
             UserData userData = new UserData(params[0], params[1], params[2]);
             try {
                 AuthData authData = server.register(userData);
@@ -71,12 +60,13 @@ public class ChessClient {
                 }
                 throw new ResponseException(400, "Username already taken " + errorMsg);
             }
-            state = State.LOGGEDIN;
+            Repl.setState(State.LOGGEDIN);
+            Repl.setPrompt();
             LoggedInClient.setUserName(params[0]);
-            LoggedInClient.reloadGameIDs();
-            return String.format("You registered as %s.", userName);
+            postClient.reloadGameIDs();
+            return String.format("You registered as %s.", LoggedInClient.getUsername());
         }
-        if (state != State.LOGGEDOUT) {
+        if (!Repl.getState().equals(State.LOGGEDOUT)) {
             throw new ResponseException(400, "already registered");
         }
         throw new ResponseException(400,"Expected: <username> <password> <email>");
@@ -89,7 +79,7 @@ public class ChessClient {
      * @throws ResponseException Used for bad inputs
      */
     public String login(String... params) throws ResponseException {
-        if (params.length == 2 && state == State.LOGGEDOUT) {
+        if (params.length == 2 && Repl.getState().equals(State.LOGGEDOUT)) {
             UserData userData = new UserData(params[0], params[1], null);
             try {
                 AuthData authData = server.login(userData);
@@ -101,12 +91,13 @@ public class ChessClient {
                 }
                 throw new ResponseException(400, "Invalid username or password " + errorMsg);
             }
-            state = State.LOGGEDIN;
+            Repl.setState(State.LOGGEDIN);
+            Repl.setPrompt();
             LoggedInClient.setUserName(params[0]);
-            LoggedInClient.reloadGameIDs();
-            return String.format("Success! Logged in as " + userName);
+            postClient.reloadGameIDs();
+            return String.format("Success! Logged in as " + LoggedInClient.getUsername());
         }
-        if (state != State.LOGGEDOUT) {
+        if (!Repl.getState().equals(State.LOGGEDOUT)) {
             throw new ResponseException(400, "Already logged in");
         }
         throw new ResponseException(400, "Expected: <username> <password>");
@@ -302,11 +293,12 @@ public class ChessClient {
                 errorMsg = e.getMessage();
                 throw new ResponseException(400, "Unable to clearDB: " + errorMsg);
             }
-            state = State.LOGGEDOUT;
-            authToken = null;
+            Repl.setState(State.LOGGEDOUT);
+            Repl.setPrompt();
+            LoggedInClient.setAuthToken(null);
             return "db cleared";
         }
-        throw new ResponseException(400, "No");
+        throw new ResponseException(400, "");
     }
 
     /**
@@ -322,109 +314,85 @@ public class ChessClient {
                 - "quit" - exits program""";
     }
 
-    /**
-     *
-     * @param input string to be tested if integer
-     * @return true if integer, else false
-     */
-    public static boolean isInteger(String input) {
-        try {
-            Integer.parseInt(input);
-            return true;
-        } catch (NumberFormatException e) {
-            return false;
-        }
-    }
-
-    /**
-     *
-     * @param list list of games in DB
-     * @param gameID game ID you are searching for
-     * @param playerColour The color you are checking against
-     * @return true if the current player is  playerColor in that game, else false
-     */
-    private boolean alreadyPartOfGame(List<GameData> list, int gameID, String playerColour) {
-        if (playerColour == null) {
-            return false;
-        }
-        int i = 0;
-        while (i < list.size()) {
-            GameData gameData = list.get(i);
-            if (gameData.gameID() == gameID &&
-                    playerColour.equals("black") &&
-                    userName.equals(gameData.blackUsername())) {
-                return true;
-            } else if (gameData.gameID() == gameID &&
-                    playerColour.equals("white") &&
-                    userName.equals(gameData.whiteUsername())){
-                return true;
-            }
-            i++;
-        }
-        return false;
-    }
-
-    /**
-     *
-     * @param list list of game from the DB
-     * @return a formated list of game for the list method
-     */
-    private String listFormater(List<GameData> list) {
-        if (list.isEmpty()) {
-            return "No Games";
-        }
-
-        StringBuilder result = new StringBuilder();
-        int i = 0;
-        ID_LOOKUP.clear();
-        while (i < list.size()) {
-            GameData gameData;
-            gameData = list.get(i);
-            result.append(String.format(i+1 + ". Name: " + gameData.gameName() +
-                    ", Black username: " + nullToString(gameData.blackUsername()) +
-                    ", White username: " + nullToString(gameData.whiteUsername()) + "\n"));
-            i++;
-            debug("adding to ID_LOOKUP: " + i + " and " + gameData.gameID());
-            ID_LOOKUP.put(i , gameData.gameID());
-        }
-        return result.toString();
-    }
-
-    /**
-     *
-     * @param playerUsername the username to be checked if null
-     * @return "No user joined" if playerUsername in null, else playerUsername
-     */
-    private String nullToString(String playerUsername) {
-        if (playerUsername == null) {
-            return "No user joined";
-        }
-        return playerUsername;
-    }
-
-    /**
-     *
-     * @return the State for the Repl
-     */
-    public static State getState() {
-        return state;
-    }
-
-    /**
-     *
-     * @return player color for drawing board
-     */
-    public static String getPlayerColor() {
-        return playerColor;
-    }
-
-    /**
-     *
-     * @return the active Username
-     */
-    public static String getUsername() {
-        return userName;
-    }
+//    /**
+//     *
+//     * @param input string to be tested if integer
+//     * @return true if integer, else false
+//     */
+//    public static boolean isInteger(String input) {
+//        try {
+//            Integer.parseInt(input);
+//            return true;
+//        } catch (NumberFormatException e) {
+//            return false;
+//        }
+//    }
+//
+//    /**
+//     *
+//     * @param list list of games in DB
+//     * @param gameID game ID you are searching for
+//     * @param playerColour The color you are checking against
+//     * @return true if the current player is  playerColor in that game, else false
+//     */
+//    private boolean alreadyPartOfGame(List<GameData> list, int gameID, String playerColour) {
+//        if (playerColour == null) {
+//            return false;
+//        }
+//        int i = 0;
+//        while (i < list.size()) {
+//            GameData gameData = list.get(i);
+//            if (gameData.gameID() == gameID &&
+//                    playerColour.equals("black") &&
+//                    userName.equals(gameData.blackUsername())) {
+//                return true;
+//            } else if (gameData.gameID() == gameID &&
+//                    playerColour.equals("white") &&
+//                    userName.equals(gameData.whiteUsername())){
+//                return true;
+//            }
+//            i++;
+//        }
+//        return false;
+//    }
+//
+//    /**
+//     *
+//     * @param list list of game from the DB
+//     * @return a formated list of game for the list method
+//     */
+//    private String listFormater(List<GameData> list) {
+//        if (list.isEmpty()) {
+//            return "No Games";
+//        }
+//
+//        StringBuilder result = new StringBuilder();
+//        int i = 0;
+//        ID_LOOKUP.clear();
+//        while (i < list.size()) {
+//            GameData gameData;
+//            gameData = list.get(i);
+//            result.append(String.format(i+1 + ". Name: " + gameData.gameName() +
+//                    ", Black username: " + nullToString(gameData.blackUsername()) +
+//                    ", White username: " + nullToString(gameData.whiteUsername()) + "\n"));
+//            i++;
+//            debug("adding to ID_LOOKUP: " + i + " and " + gameData.gameID());
+//            ID_LOOKUP.put(i , gameData.gameID());
+//        }
+//        return result.toString();
+//    }
+//
+//    /**
+//     *
+//     * @param playerUsername the username to be checked if null
+//     * @return "No user joined" if playerUsername in null, else playerUsername
+//     */
+//    private String nullToString(String playerUsername) {
+//        if (playerUsername == null) {
+//            return "No user joined";
+//        }
+//        return playerUsername;
+//    }
 
     /**
      * Prints only if detailed messaging is on

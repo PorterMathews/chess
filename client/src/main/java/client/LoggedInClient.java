@@ -3,7 +3,6 @@ package client;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-
 import model.*;
 import exception.ResponseException;
 import server.ServerFacade;
@@ -14,9 +13,8 @@ public class LoggedInClient {
 
     private static String userName = null;
     private static String authToken = null;
-    private static final ServerFacade server;
+    private final ServerFacade server;
     private final String serverUrl;
-    private static State state = State.LOGGEDOUT;
     private static String playerColor;
     private static final boolean detailedErrorMsg = false;
     private static String errorMsg;
@@ -63,7 +61,7 @@ public class LoggedInClient {
      * @throws ResponseException Used for bad inputs
      */
     public String logout() throws ResponseException {
-        if (state != State.LOGGEDOUT) {
+        if (!Repl.getState().equals(State.LOGGEDOUT)) {
             try {
                 server.logout(authToken);
             } catch (ResponseException e) {
@@ -73,7 +71,8 @@ public class LoggedInClient {
                 }
                 throw new ResponseException(400, "Unable to Logout " + errorMsg);
             }
-            state = State.LOGGEDOUT;
+            Repl.setState(State.LOGGEDOUT);
+            Repl.setPrompt();
             authToken = null;
             return "Logged out";
         }
@@ -87,7 +86,7 @@ public class LoggedInClient {
      * @throws ResponseException Used for bad inputs
      */
     public String create(String... params) throws ResponseException {
-        if (params.length == 1 && state == State.LOGGEDIN) {
+        if (params.length == 1 && Repl.getState().equals(State.LOGGEDIN)) {
             int gameID;
             try {
                 gameID = server.crateGame(authToken, params[0]);
@@ -101,10 +100,10 @@ public class LoggedInClient {
             ID_LOOKUP.put(ID_LOOKUP.size() + 1, gameID);
             return String.format("You created a game named " + params[0]);
         }
-        if (state == State.LOGGEDOUT) {
+        if (Repl.getState().equals(State.LOGGEDOUT)) {
             throw new ResponseException(400, "please log in first");
         }
-        if (state == State.INGAME) {
+        if (Repl.getState().equals(State.INGAME)) {
             throw new ResponseException(400, "already in game");
         }
         throw new ResponseException(400, "Expected: <game name>");
@@ -116,7 +115,7 @@ public class LoggedInClient {
      * @throws ResponseException Used for bad inputs
      */
     public String list() throws ResponseException {
-        if (state == State.LOGGEDIN) {
+        if (Repl.getState().equals(State.LOGGEDIN)) {
             List<GameData> gameList;
             try {
                 gameList = server.listGames(authToken);
@@ -129,7 +128,7 @@ public class LoggedInClient {
             }
             return String.format(listFormater(gameList));
         }
-        if (state == State.INGAME) {
+        if (Repl.getState().equals(State.INGAME)) {
             throw new ResponseException(400, "please exit game first");
         }
         throw new ResponseException(400, "please log in first");
@@ -143,7 +142,7 @@ public class LoggedInClient {
      */
     public String join(String... params) throws ResponseException {
         debug("joining game");
-        if (params.length == 2 && state == State.LOGGEDIN && isInteger(params[0])) {
+        if (params.length == 2 && Repl.getState().equals(State.LOGGEDIN) && isInteger(params[0])) {
             int game = Integer.parseInt(params[0]);
             String passedPlayerColor = params[1].toLowerCase();
             if (game > ID_LOOKUP.size() || game < 1) {
@@ -165,8 +164,9 @@ public class LoggedInClient {
             //debug("checking if part of game: " + gameID);
             if (alreadyPartOfGame(gameList, gameID, passedPlayerColor)) {
                 ws = new WebSocketFacade(serverUrl, notificationHandler);
-                ws.playerJoinsGame(params[0], params[1]);
-                state = State.INGAME;
+                ws.playerJoinsGame(userName, params[1]);
+                Repl.setState(State.INGAME);
+                Repl.setPrompt();
                 playerColor = params[1];
                 //DrawChessBoard.drawBoard(playerColor);
                 return String.format("Rejoining game " +params[0]+ " as " + params[1] + " player");
@@ -184,12 +184,13 @@ public class LoggedInClient {
             }
             ws = new WebSocketFacade(serverUrl, notificationHandler);
             ws.playerJoinsGame(params[0], params[1]);
-            state = State.INGAME;
+            Repl.setState(State.INGAME);
+            Repl.setPrompt();
             playerColor = params[1];
             return String.format("Joined game " +params[0]+ " as " + params[1] + " player");
-        }  else if (state == State.INGAME) {
+        }  else if (Repl.getState().equals(State.INGAME)) {
             throw new ResponseException(400, "please exit game first");
-        } else if (state == State.LOGGEDOUT) {
+        } else if (Repl.getState().equals(State.LOGGEDOUT)) {
             throw new ResponseException(400, "please log in first");
         }
         throw new ResponseException(400, "Expected: <gameID> <white|black>");
@@ -202,7 +203,7 @@ public class LoggedInClient {
      * @throws ResponseException Used for bad inputs
      */
     public String observe(String... params) throws ResponseException {
-        if (params.length == 1 && state == State.LOGGEDIN && isInteger(params[0])) {
+        if (params.length == 1 && Repl.getState().equals(State.LOGGEDIN) && isInteger(params[0])) {
             reloadGameIDs();
             int game = Integer.parseInt(params[0]);
             if (game > ID_LOOKUP.size() || game < 1) {
@@ -210,13 +211,14 @@ public class LoggedInClient {
             }
             ws = new WebSocketFacade(serverUrl, notificationHandler);
             ws.observerJoinsGame(userName);
-            state = State.INGAME;
+            Repl.setState(State.INGAME);
+            Repl.setPrompt();
             playerColor = "white";
             //DrawChessBoard.drawBoard(playerColor);
             return String.format("observing game " + params[0]);
-        }  else if (state == State.INGAME) {
+        }  else if (Repl.getState().equals(State.INGAME)) {
             throw new ResponseException(400, "please exit game first");
-        } else if (state == State.LOGGEDOUT) {
+        } else if (Repl.getState().equals(State.LOGGEDOUT)) {
             throw new ResponseException(400, "please log in first");
         }
         throw new ResponseException(400, "Expected: <gameID>");
@@ -237,7 +239,8 @@ public class LoggedInClient {
                 errorMsg = e.getMessage();
                 throw new ResponseException(400, "Unable to clearDB: " + errorMsg);
             }
-            state = State.LOGGEDOUT;
+            Repl.setState(State.LOGGEDOUT);
+            Repl.setPrompt();
             authToken = null;
             return "db cleared";
         }
@@ -264,7 +267,7 @@ public class LoggedInClient {
      * Keeps games up to date in ID_LOOKUP
      * @throws ResponseException
      */
-    public static void reloadGameIDs() throws ResponseException {
+    public void reloadGameIDs() throws ResponseException {
         List<GameData> list;
         try {
             list = server.listGames(authToken);
@@ -340,7 +343,6 @@ public class LoggedInClient {
         if (list.isEmpty()) {
             return "No Games";
         }
-
         StringBuilder result = new StringBuilder();
         int i = 0;
         ID_LOOKUP.clear();
@@ -371,14 +373,6 @@ public class LoggedInClient {
 
     /**
      *
-     * @return the State for the Repl
-     */
-    public static State getState() {
-        return state;
-    }
-
-    /**
-     *
      * @return player color for drawing board
      */
     public static String getPlayerColor() {
@@ -393,12 +387,16 @@ public class LoggedInClient {
         return userName;
     }
 
-    public static void setUserName(String userName) {
-        userName = userName;
+    public static void setUserName(String name) {
+        userName = name;
     }
 
-    public static void setAuthToken(String authToken) {
-        authToken = authToken;
+    public static void setAuthToken(String auth) {
+        authToken = auth;
+    }
+
+    public static String getAuthToken() {
+        return authToken;
     }
 
     /**
@@ -410,5 +408,4 @@ public class LoggedInClient {
             System.out.println(input);
         }
     }
-
 }
