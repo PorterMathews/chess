@@ -7,7 +7,9 @@ import client.websocket.NotificationHandler;
 import websocket.messages.Notification;
 
 public class Repl implements NotificationHandler  {
-    private final ChessClient client;
+    private final ChessClient preClient;
+    private final LoggedInClient postClient;
+    private final GameClient gameClient;
     Scanner scanner = new Scanner(System.in);
     private String result;
     ChessGame chessGame = new ChessGame();
@@ -20,7 +22,9 @@ public class Repl implements NotificationHandler  {
 
 
     public Repl(String serverUrl){
-        client = new ChessClient(serverUrl, this);
+        preClient = new ChessClient(serverUrl, this);
+        postClient = new LoggedInClient(serverUrl, this);
+        gameClient = new GameClient(serverUrl, this);
         result = "";
         drawChessBoard = new DrawChessBoard(chessGame);
     }
@@ -46,7 +50,7 @@ public class Repl implements NotificationHandler  {
      */
     public void preLogin() {
         if (state != State.LOGGEDOUT) {
-            System.out.println(PRE_LOGIN_COLOR + client.help());
+            System.out.println(PRE_LOGIN_COLOR + preClient.help());
             state = State.LOGGEDOUT;
         }
         System.out.println(PRE_LOGIN_COLOR + "Please, sign in or register");
@@ -55,7 +59,7 @@ public class Repl implements NotificationHandler  {
         String line = scanner.nextLine();
 
         try {
-            result = client.eval(line);
+            result = preClient.eval(line);
             System.out.println(PRE_LOGIN_COLOR + result);
         } catch (Throwable e) {
             var msg = e.toString();
@@ -69,7 +73,7 @@ public class Repl implements NotificationHandler  {
      */
     public void postLogin() {
         if (state != State.LOGGEDIN) {
-            System.out.println(POST_LOGIN_COLOR + client.help());
+            System.out.println(POST_LOGIN_COLOR + preClient.help());
             state = State.LOGGEDIN;
         }
         System.out.println(POST_LOGIN_COLOR + "Please, join or create a game");
@@ -78,7 +82,7 @@ public class Repl implements NotificationHandler  {
         String line = scanner.nextLine();
 
         try {
-            result = client.eval(line);
+            result = postClient.eval(line);
             System.out.println(POST_LOGIN_COLOR + result);
         } catch (Throwable e) {
             var msg = e.toString();
@@ -93,14 +97,14 @@ public class Repl implements NotificationHandler  {
     public void gameplay() {
         System.out.println(DrawChessBoard.drawBoard(ChessClient.getPlayerColor()));
         if (state != State.INGAME) {
-            System.out.println(IN_GAME_COLOR + client.help());
+            System.out.println(IN_GAME_COLOR + preClient.help());
             state = State.INGAME;
         }
         printPromptInGame();
         String line = scanner.nextLine();
 
         try {
-            result = client.eval(line);
+            result = preClient.eval(line);
             System.out.print(IN_GAME_COLOR + result);
         } catch (Throwable e) {
             var msg = e.toString();

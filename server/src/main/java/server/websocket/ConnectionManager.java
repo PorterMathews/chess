@@ -12,16 +12,16 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ConnectionManager {
     public final ConcurrentHashMap<String, List<Connection>> connections = new ConcurrentHashMap<>();
 
-    public void add(String userName, int gameID, String role, Session session) {
-        var connection = new Connection(userName, gameID, role, session);
-        if (connections.containsKey(userName)) {
-            List<Connection> connectionList = connections.get(userName);
+    public void add(Connection c) {
+        var connection = new Connection(c.userName, c.gameID, c.role, c.session);
+        if (connections.containsKey(c.userName)) {
+            List<Connection> connectionList = connections.get(c.userName);
             connectionList.add(connection);
-            connections.put(userName, connectionList);
+            connections.put(c.userName, connectionList);
         } else {
             List<Connection> connectionList = new ArrayList<>();
             connectionList.add(connection);
-            connections.put(userName, connectionList);
+            connections.put(c.userName, connectionList);
         }
     }
 
@@ -44,7 +44,7 @@ public class ConnectionManager {
         }
     }
 
-    public void broadcast(String excludeUserName, int gameID, Notification notification) throws IOException {
+    public void broadcast(Connection excludeConnection, Notification notification) throws IOException {
         var removeList = new ArrayList<Connection>();
         for (List<Connection> connectionList : connections.values()) {
             for (Connection c : connectionList) {
@@ -52,7 +52,7 @@ public class ConnectionManager {
                     removeList.add(c);
                     continue;
                 }
-                if (c.gameID == gameID && !c.userName.equals(excludeUserName)) {
+                if (c.gameID == excludeConnection.gameID && !c.equals(excludeConnection)) {
                     c.send(notification.toString());
                 }
             }

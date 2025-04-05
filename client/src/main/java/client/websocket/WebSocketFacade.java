@@ -54,28 +54,8 @@ public class WebSocketFacade extends Endpoint {
 
     public void observerJoinsGame(String username) throws ResponseException {
         try {
-            var action = new Action(Action.Type.OBSERVERJOIN, username, playerColor);
-
-        } catch (IOException ex) {
-            throw new ResponseException(500, ex.getMessage());
-        }
-    }
-
-
-    public void enterPetShop(String visitorName) throws ResponseException {
-        try {
-            var action = new Action(Action.Type.ENTER, visitorName, "Smurf");
+            var action = new Action(Action.Type.OBSERVERJOIN, username, null);
             this.session.getBasicRemote().sendText(new Gson().toJson(action));
-        } catch (IOException ex) {
-            throw new ResponseException(500, ex.getMessage());
-        }
-    }
-
-    public void leavePetShop(String visitorName) throws ResponseException {
-        try {
-            var action = new Action(Action.Type.EXIT, visitorName, "Smurf");
-            this.session.getBasicRemote().sendText(new Gson().toJson(action));
-            this.session.close();
         } catch (IOException ex) {
             throw new ResponseException(500, ex.getMessage());
         }
