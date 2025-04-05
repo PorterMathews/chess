@@ -6,11 +6,16 @@ import java.io.IOException;
 
 public class Connection {
     public String userName;
+    public int gameID;
+    public String role;
     public Session session;
 
-    public Connection(String userName, Session session) {
+
+    public Connection(String userName, int gameID, String role, Session session) {
         this.userName = userName;
         this.session = session;
+        this.gameID = gameID;
+        this.role = role;
     }
 
     public void send(String msg) throws IOException {

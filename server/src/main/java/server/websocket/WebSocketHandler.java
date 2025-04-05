@@ -19,7 +19,6 @@ public class WebSocketHandler {
     public void onMessage(Session session, String message) throws IOException {
         Action action = new Gson().fromJson(message, Action.class);
         switch (action.type()) {
-            case DEPARTURE -> departure();
             case PLAYERJOIN -> playerJoin(action.userName(), action.playerColor(), session);
             case OBSERVERJOIN -> observerJoin();
             case MOVEMADE ->  moveMade();
@@ -29,6 +28,21 @@ public class WebSocketHandler {
             case CHECK -> check();
             case CHECKMATE -> checkMate();
         }
+    }
+
+    @OnWebSocketConnect
+    public void onConnect(Session session) {
+        System.out.println("✅ WebSocket connection established with session: " + session);
+    }
+
+    @OnWebSocketClose
+    public void onClose(Session session, int statusCode, String reason) {
+        System.out.println("❌ Connection closed: " + reason);
+    }
+
+    @OnWebSocketError
+    public void onError(Session session, Throwable error) {
+        error.printStackTrace();
     }
 
     private void departure() throws IOException {
@@ -42,8 +56,8 @@ public class WebSocketHandler {
         connections.broadcast(userName, notification);
     }
 
-    private void observerJoin() throws IOException {
-
+    private void observerJoin(String userName, Session session) throws IOException {
+        connections.add(userName, session);
     }
 
     private void moveMade() throws IOException {

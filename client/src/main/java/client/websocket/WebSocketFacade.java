@@ -52,6 +52,15 @@ public class WebSocketFacade extends Endpoint {
         }
     }
 
+    public void observerJoinsGame(String username) throws ResponseException {
+        try {
+            var action = new Action(Action.Type.OBSERVERJOIN, username, playerColor);
+
+        } catch (IOException ex) {
+            throw new ResponseException(500, ex.getMessage());
+        }
+    }
+
 
     public void enterPetShop(String visitorName) throws ResponseException {
         try {
