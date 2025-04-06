@@ -229,4 +229,24 @@ public class Handler {
             return new Gson().toJson(Map.of("message", "Error: Internal Server Error"));
         }
     }
+
+    public Object updateGame(Request req, Response res) {
+        try {
+            String authToken = req.headers("Authorization");
+            var gameData = new Gson().fromJson(req.body(), GameData.class);
+            int gameID = Integer.parseInt(req.params("id"));
+            gameService.updateGame(authToken, gameID, gameData);
+            res.status(200);
+            return "";
+        }
+        catch(DataAccessException error) {
+            if (error.getMessage().equals("Unauthorized to Get Game")) {
+                res.status(401);
+            } return new Gson().toJson(Map.of("message","Error: "+ error.getMessage()));
+        }
+        catch (Exception error) {
+            res.status(500);
+            return new Gson().toJson(Map.of("message", "Error: Internal Server Error"));
+        }
+    }
 }

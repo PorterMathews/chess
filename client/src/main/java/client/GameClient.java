@@ -2,8 +2,7 @@ package client;
 
 import java.util.Arrays;
 import java.util.List;
-import chess.ChessBoard;
-import chess.ChessGame;
+import chess.*;
 import com.google.gson.Gson;
 import model.*;
 import exception.ResponseException;
@@ -14,14 +13,15 @@ import client.websocket.WebSocketFacade;
 public class GameClient {
     private final ServerFacade server;
     private final String serverUrl;
-    private static final boolean detailedErrorMsg = false;
+    private static final boolean detailedErrorMsg = true;
     private static String errorMsg;
     private final NotificationHandler notificationHandler;
     private WebSocketFacade ws;
     private LoggedInClient postClient;
     private static int gameID;
     private DrawChessBoard drawChessBoard;
-    private static ChessBoard board;
+    private ChessBoard board;
+    private ChessGame chessGame;
 
     public GameClient(String serverUrl, LoggedInClient postClient, NotificationHandler notificationHandler) {
         this.serverUrl = serverUrl;
@@ -50,22 +50,67 @@ public class GameClient {
             };
         } catch (ResponseException ex) {
             return ex.getMessage();
+        } catch (InvalidMoveException e) {
+            throw new RuntimeException(e);
         }
     }
 
-    public String move(String... params) throws ResponseException {
+    public String move(String... params) throws ResponseException, InvalidMoveException {
         if (params.length == 2 && params[0].length() == 2 && params[1].length() == 2) {
             String pattern = "^[a-h][1-8]$";
             if (params[0].matches(pattern) && params[1].matches(pattern)) {
+                syncBoardFromServer();
+                char letter;
+                char rank;
+                letter = params[0].charAt(0);
+                rank = params[0].charAt(1);
+                int colCurrent = letter - 'a' + 1;
+                int rowCurrent = Character.getNumericValue(rank);
+                debug("moving from col:" + colCurrent);
+                debug("moving from row:" + rowCurrent);
+                ChessPiece pieceCurrent = board.getPiece(new ChessPosition(rowCurrent, colCurrent));
 
+                letter = params[1].charAt(0);
+                rank = params[1].charAt(1);
+                int colTarget = letter - 'a' + 1;
+                int rowTarget = Character.getNumericValue(rank);
+                debug("moving to col:" + colTarget);
+                debug("moving to row:" + rowTarget);
+                ChessPiece pieceTarget = board.getPiece(new ChessPosition(rowTarget, colTarget));
+
+                if (pieceCurrent == null) {
+                    throw new ResponseException(400, "No piece at target location");
+                }
+                if (board.isValidMove(new ChessPosition(rowCurrent, colCurrent), pieceCurrent)) {
+                    throw new ResponseException(400, "Not a valid move");
+                }
+                ChessMove move = new ChessMove(new ChessPosition(rowCurrent, colCurrent),new ChessPosition(rowTarget, colTarget), null );
+                chessGame.makeMove(move);
+                server.updateGame(LoggedInClient.getAuthToken(), gameID, chessGame);
+                syncBoardFromServer();
+                return "Move made!";
             }
         }
         throw new ResponseException(400, "Expected: <current space> <target space> i.e. <b1> <c3>");
     }
 
+    public void loadChessGameFromServer() throws ResponseException {
+        List<GameData> gameList = server.listGames(LoggedInClient.getAuthToken());
+        for (GameData game : gameList) {
+            if (game.gameID() == gameID) {
+                this.chessGame = game.game();
+            }
+        }
+    }
+
+    private void syncBoardFromServer() throws ResponseException {
+        loadChessGameFromServer();
+        board = chessGame.getBoard();
+    }
+
     public String redraw() throws ResponseException {
-        setChessBoard();
-        return DrawChessBoard.drawBoard(postClient.getPlayerColor());
+        syncBoardFromServer();
+        return DrawChessBoard.drawBoard(postClient.getPlayerColor(), board);
     }
 
     public String highlight(String... params) throws ResponseException {
@@ -142,12 +187,12 @@ public class GameClient {
         }
          for (GameData game : gameList) {
              if (game.gameID() == gameID) {
-                 board = new Gson().fromJson((new Gson().toJson(ChessGame.getBoard())), ChessBoard.class);
+                 board = chessGame.getBoard();
              }
          }
     }
 
-    public static ChessBoard getChessBoard() {
+    public ChessBoard getChessBoard() {
         return board;
     }
 
@@ -164,5 +209,4 @@ public class GameClient {
             System.out.println(input);
         }
     }
-
 }

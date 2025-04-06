@@ -1,5 +1,9 @@
 package dataaccess;
 
+import chess.ChessGame;
+import chess.ChessMove;
+import chess.ChessPosition;
+import chess.InvalidMoveException;
 import org.junit.jupiter.api.*;
 import model.*;
 import java.util.Collection;
@@ -252,4 +256,33 @@ public class DataAccessTest {
         assertTrue(gameDAO.getGames().isEmpty());
     }
 
+    @Test
+    public void testUpdateGame() throws DataAccessException, InvalidMoveException {
+        gameService.createGame(existingAuth, "testGame");
+        ChessGame chessGame = new ChessGame();
+        ChessPosition start = new ChessPosition(2, 5);
+        ChessPosition end = new ChessPosition(3, 5);
+        chessGame.makeMove(new ChessMove(start, end, null));
+        assertNull(chessGame.getBoard().getPiece(new ChessPosition(2, 5)));
+        Collection<GameData> gameDataCollection = gameService.getGames(existingAuth);
+        GameData gameDataBefore = gameDataCollection.iterator().next();
+        System.out.println(chessGame.getBoard().getPiece(new ChessPosition(2,5)).getPieceType());
+        System.out.println("Game before ID: " + gameDataBefore.gameID());
+        gameService.updateGame(existingAuth, gameDataBefore.gameID(), new GameData(gameDataBefore.gameID(), null, null, null, chessGame));
+        Collection<GameData> gameDataC = gameService.getGames(existingAuth);
+        GameData gameDataAfter = gameDataC.iterator().next();
+        System.out.println("Game after ID: " + gameDataAfter.gameID());
+        System.out.println(gameDataAfter.game().getBoard().getPiece(new ChessPosition(2,5)).getPieceType());
+        System.out.println("Before and after same object? " +
+                (gameDataBefore.game() == gameDataAfter.game()));
+        assertEquals(gameDataBefore.game().getBoard().getPiece(new ChessPosition(2,5)).getPieceType(), gameDataAfter.game().getBoard().getPiece(new ChessPosition(2,5)).getPieceType());
+    }
+
+    @Test
+    public void testUpdateGameBadAuth() {
+        Exception exception = assertThrows(DataAccessException.class, () -> {
+            gameService.updateGame("null", 1,  new GameData(1,null, null,null,null));
+        });
+        assertEquals("Unauthorized to update Game", exception.getMessage());
+    }
 }

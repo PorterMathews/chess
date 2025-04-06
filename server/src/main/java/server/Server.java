@@ -18,11 +18,11 @@ public class Server {
         Spark.staticFiles.location("/web");
 
         Spark.webSocket("/ws", webSocketHandler);
-
         Spark.delete("/db", handler::clearDatabase);
         Spark.post("/user", handler::register);
         Spark.post("/session", handler::login);
         Spark.delete("/session", handler::logout);
+        Spark.put("/game/:id", handler::updateGame);
         Spark.post("/game", handler::createGame);
         Spark.put("/game", handler::joinGame);
         Spark.get("/game", handler::getGames);

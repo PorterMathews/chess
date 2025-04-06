@@ -35,6 +35,11 @@ public class SQLGameDAO implements GameDAO {
         return getAllGamesFromDatabase();
     }
 
+    public void updateGame(int gameID, GameData gameData) throws DataAccessException {
+        String statement = "UPDATE GameData SET chessGame = ? WHERE gameID = ?";
+        updateData(statement, new Gson().toJson(gameData.game()), gameID);
+    }
+
     /**
      *
      * @param userName username to be added

@@ -1,11 +1,23 @@
 package client;
 
+import chess.ChessGame;
+import chess.ChessMove;
+import chess.ChessPosition;
+import chess.InvalidMoveException;
+import com.google.gson.Gson;
+import dataaccess.DataAccessException;
 import exception.ResponseException;
 import model.AuthData;
+import model.GameData;
 import model.UserData;
 import org.junit.jupiter.api.*;
 import server.Server;
 import server.ServerFacade;
+
+import java.util.Collection;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 
 public class ServerFacadeTests {
@@ -147,4 +159,32 @@ public class ServerFacadeTests {
         });
     }
 
+    @Test
+    public void testUpdateGame() throws ResponseException, InvalidMoveException {
+        int gameID = serverFacade.crateGame(existingAuth, "testGame");
+        ChessGame chessGame = new ChessGame();
+        ChessPosition start = new ChessPosition(2, 5);
+        ChessPosition end = new ChessPosition(3, 5);
+        chessGame.makeMove(new ChessMove(start, end, null));
+        assertNull(chessGame.getBoard().getPiece(new ChessPosition(2, 5)));
+        Collection<GameData> gameDataCollection = serverFacade.listGames(existingAuth);
+        GameData gameDataBefore = gameDataCollection.iterator().next();
+        assertEquals(gameDataBefore.gameID(), gameID);
+
+        serverFacade.updateGame(existingAuth, gameID, chessGame);
+
+        Collection<GameData> gameDataC = serverFacade.listGames(existingAuth);
+        GameData gameDataAfter = gameDataC.iterator().next();
+
+        assertNotEquals(gameDataBefore.game().getBoard().getPiece(new ChessPosition(2,5)),
+                gameDataAfter.game().getBoard().getPiece(new ChessPosition(2,5)));
+    }
+
+
+    @Test
+    public void testUpdateGameBadAuth() {
+        Assertions.assertDoesNotThrow(() -> {
+            serverFacade.updateGame("null", 1234, new GameData(1234,null, null,null,new ChessGame()).game());
+        });
+    }
 }

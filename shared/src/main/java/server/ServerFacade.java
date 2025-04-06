@@ -1,5 +1,6 @@
 package server;
 
+import chess.ChessGame;
 import com.google.gson.Gson;
 import exception.ResponseException;
 import model.*;
@@ -80,6 +81,12 @@ public class ServerFacade {
     public void joinGame(String authToken, String playerColor, int gameID) throws ResponseException {
         var path = "/game";
         this.makeRequest("PUT", path, authToken, new JoinGameRequest(playerColor, gameID), null);
+    }
+
+    public void updateGame(String authToken, int gameID, ChessGame updatedGame) throws ResponseException {
+        String path = "/game/" + gameID;
+        GameData updatedGameData = new GameData(gameID, null, null, null, updatedGame);
+        makeRequest("PUT", path, authToken, updatedGameData, null);
     }
 
     /**

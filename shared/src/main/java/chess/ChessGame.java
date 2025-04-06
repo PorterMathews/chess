@@ -15,7 +15,7 @@ import java.util.Objects;
 public class ChessGame {
 
     private TeamColor teamTurn;
-    private static ChessBoard chessBoard;
+    private ChessBoard chessBoard;
     private boolean canEnPassant;
     private int enPassantCol;
 
@@ -474,7 +474,7 @@ public class ChessGame {
 
     /**Gets the current chessboard
      * @return the chessboard */
-    public static ChessBoard getBoard() {
+    public ChessBoard getBoard() {
         return chessBoard;
     }
 }

@@ -55,6 +55,10 @@ public class MemoryGameDAO implements GameDAO {
         GAME_INFO.put(gameData.gameID(), gameData);
     }
 
+    public void updateGame(int gameID, GameData gameData) {
+
+    }
+
     /**
      * @return A collection of all games
      */

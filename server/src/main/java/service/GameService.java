@@ -65,6 +65,13 @@ public class GameService {
         return gameDAO.getGames();
     }
 
+    public void updateGame(String authToken, int gameID, GameData gameData) throws DataAccessException {
+        if (!authDAO.authTokenExists(authToken)) {
+            throw new DataAccessException("Unauthorized to update Game");
+        }
+        gameDAO.updateGame(gameID, gameData);
+    }
+
     public void clearGameData() throws DataAccessException {
         //System.out.println("Service clear 3");
         gameDAO.clearGameData();

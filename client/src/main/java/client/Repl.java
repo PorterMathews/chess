@@ -96,7 +96,7 @@ public class Repl implements NotificationHandler  {
         if (prompt) {
             gameClient.setChessBoard();
             System.out.println(IN_GAME_COLOR + gameClient.help());
-            System.out.println(DrawChessBoard.drawBoard(LoggedInClient.getPlayerColor()));
+            System.out.println(DrawChessBoard.drawBoard(LoggedInClient.getPlayerColor(), gameClient.getChessBoard()));
             prompt = false;
         }
         printPromptInGame();

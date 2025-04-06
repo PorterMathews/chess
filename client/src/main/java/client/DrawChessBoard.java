@@ -23,19 +23,19 @@ public class DrawChessBoard {
      * @param playerColor player orientation
      * @return the gameBoard in string to be printed
      */
-    public static String drawBoard(String playerColor) {
+    public static String drawBoard(String playerColor, ChessBoard board) {
         StringBuilder result = new StringBuilder();
         if (playerColor.equals("white")) {
             for (int row = 9; row >= 0; row--) {
                 for (int col = 0; col < 10; col++) {
-                    result.append(buildingLoop(row, col));
+                    result.append(buildingLoop(row, col, board));
                 }
                 result.append("\n");
             }
         } else {
             for (int row = 0; row < 10; row++) {
                 for (int col = 9; col >= 0; col--) {
-                    result.append(buildingLoop(row, col));
+                    result.append(buildingLoop(row, col, board));
                 }
                 result.append("\n");
             }
@@ -76,15 +76,15 @@ public class DrawChessBoard {
      * @param col target col
      * @return the appreciate filled square for row, col
      */
-    private static String buildingLoop(int row, int col) {
+    private static String buildingLoop(int row, int col, ChessBoard board) {
         if (row == 0 || col == 0 || row == 9 || col == 9) {
             return edgeSquare(edgeCharacterDeterminer(row, col));
         }
         else if ((row + col) % 2 == 0){
-            return darkSquare(determinePiece(row, col));
+            return darkSquare(determinePiece(row, col, board));
         }
         else {
-            return lightSquare(determinePiece(row, col));
+            return lightSquare(determinePiece(row, col, board));
         }
     }
 
@@ -94,8 +94,8 @@ public class DrawChessBoard {
      * @param col target col
      * @return what piece goes in the space, if any
      */
-    private static String determinePiece(int row, int col) {
-        ChessPiece chessPiece =  GameClient.getChessBoard().getPiece(new ChessPosition(row, col));
+    private static String determinePiece(int row, int col, ChessBoard board) {
+        ChessPiece chessPiece =  board.getPiece(new ChessPosition(row, col));
         if (chessPiece == null) {
             return EMPTY;
         }
@@ -103,7 +103,7 @@ public class DrawChessBoard {
         StringBuilder result = new StringBuilder();
 
         ChessPiece.PieceType type = chessPiece.getPieceType();
-        ChessGame.TeamColor color = ChessGame.getBoard().getPiece(new ChessPosition(row,col)).getTeamColor();
+        ChessGame.TeamColor color = board.getPiece(new ChessPosition(row,col)).getTeamColor();
 
         String piece = "";
         String textColor = "";
@@ -120,7 +120,7 @@ public class DrawChessBoard {
         } else if (type.equals(ChessPiece.pieceType.BISHOP)) {
             piece = "B";
         } else if (type.equals(ChessPiece.pieceType.KNIGHT)) {
-            piece = "B";
+            piece = "N";
         } else if (type.equals(ChessPiece.pieceType.ROOK)) {
             piece = "R";
         } else if (type.equals(ChessPiece.pieceType.PAWN)) {
