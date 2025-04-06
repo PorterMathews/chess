@@ -1,9 +1,9 @@
 package client;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import chess.*;
-import com.google.gson.Gson;
 import model.*;
 import exception.ResponseException;
 import server.ServerFacade;
@@ -60,35 +60,24 @@ public class GameClient {
             String pattern = "^[a-h][1-8]$";
             if (params[0].matches(pattern) && params[1].matches(pattern)) {
                 refreshGameState();
-                char letter;
-                char rank;
-                letter = params[0].charAt(0);
-                rank = params[0].charAt(1);
-                int colCurrent = letter - 'a' + 1;
-                int rowCurrent = Character.getNumericValue(rank);
-                debug("moving from col:" + colCurrent);
-                debug("moving from row:" + rowCurrent);
-                ChessPiece pieceCurrent = board.getPiece(new ChessPosition(rowCurrent, colCurrent));
-
-                letter = params[1].charAt(0);
-                rank = params[1].charAt(1);
-                int colTarget = letter - 'a' + 1;
-                int rowTarget = Character.getNumericValue(rank);
-                debug("moving to col:" + colTarget);
-                debug("moving to row:" + rowTarget);
-                ChessPiece pieceTarget = board.getPiece(new ChessPosition(rowTarget, colTarget));
-
+                ChessPosition currentPosition = inputToPosition(params[0]);
+                ChessPosition targetPosition = inputToPosition(params[1]);
+                ChessPiece pieceCurrent = board.getPiece(currentPosition);
                 if (pieceCurrent == null) {
                     throw new ResponseException(400, "No piece at target location");
                 }
-                if (board.isValidMove(new ChessPosition(rowCurrent, colCurrent), pieceCurrent)) {
+                if (board.isValidMove(currentPosition, pieceCurrent)) {
                     throw new ResponseException(400, "Not a valid move");
                 }
-                ChessMove move = new ChessMove(new ChessPosition(rowCurrent, colCurrent),new ChessPosition(rowTarget, colTarget), null );
-                chessGame.makeMove(move);
+                ChessMove move = new ChessMove(currentPosition, targetPosition, null);
+                try {
+                    chessGame.makeMove(move);
+                } catch (InvalidMoveException e) {
+                    throw new ResponseException(400, "Not a valid move: " + e.getMessage());
+                }
                 server.updateGame(LoggedInClient.getAuthToken(), gameID, chessGame);
                 refreshGameState();
-                return String.format(DrawChessBoard.drawBoard(LoggedInClient.getPlayerColor(), board)+"\nMove made!");
+                return String.format(DrawChessBoard.drawBoard(LoggedInClient.getPlayerColor(), board, null)+"\nMove made!");
             }
         }
         throw new ResponseException(400, "Expected: <current space> <target space> i.e. <b1> <c3>");
@@ -96,11 +85,26 @@ public class GameClient {
 
     public String redraw() throws ResponseException {
         refreshGameState();
-        return DrawChessBoard.drawBoard(postClient.getPlayerColor(), board);
+        return DrawChessBoard.drawBoard(postClient.getPlayerColor(), board, null);
     }
 
     public String highlight(String... params) throws ResponseException {
-        return "";
+        if (params.length == 1 && params[0].length() == 2) {
+            String pattern = "^[a-h][1-8]$";
+            if (params[0].matches(pattern)) {
+                ChessPosition position = inputToPosition(params[0]);
+                if (chessGame.getBoard().getPiece(position) == null) {
+                    throw new ResponseException(400, "No piece at location");
+                }
+                Collection<ChessMove> moves = chessGame.validMoves(position);
+                if (moves.isEmpty()) {
+                    throw new ResponseException(400, "No valid moves for that piece");
+                }
+                System.out.println(DrawChessBoard.drawBoard(LoggedInClient.getPlayerColor(), board, moves));
+                return "Highlighted!";
+            }
+        }
+        throw new ResponseException(400, "Expected: <space> i.e. <b1> <c3>");
     }
 
     public String back() throws ResponseException {
@@ -158,6 +162,12 @@ public class GameClient {
                 - "leave" - exits the game and removes you as a player
                 - "resign" - forfeit the game (only available to player)
                 - "quit" - exits program""";
+    }
+
+    private ChessPosition inputToPosition  (String input) {
+        int col = input.charAt(0) - 'a' + 1;
+        int row = Character.getNumericValue(input.charAt(1));
+        return new ChessPosition(row, col);
     }
 
     public void refreshGameState() {
