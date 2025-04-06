@@ -25,7 +25,7 @@ public class GameService {
         return gameDAO.createGame(gameName);
     }
 
-    public void joinGame(String authToken, String playerColor, int gameID) throws DataAccessException {
+    public void joinGame(String authToken, String playerColor, int gameID, boolean removePlayer) throws DataAccessException {
         //System.out.println("joining game Service");
         //System.out.println("starting authToken with: " + authToken);
         if (!authDAO.authTokenExists(authToken)) {
@@ -44,18 +44,27 @@ public class GameService {
         if (!(lowerCasePlayerColor.equals("white") || lowerCasePlayerColor.equals("black"))) {
             throw new DataAccessException("bad request");
         }
-        if (gameData.whiteUsername() != null && gameData.blackUsername() != null) {
-            throw new DataAccessException("Players full for game");
-        } else if (lowerCasePlayerColor.equals("white") && gameData.whiteUsername() != null) {
-            throw new DataAccessException("Username already taken");
-        } else if (lowerCasePlayerColor.equals("black") && gameData.blackUsername() != null) {
-            throw new DataAccessException("Username already taken");
+        if (!removePlayer) {
+            if (gameData.whiteUsername() != null && gameData.blackUsername() != null) {
+                throw new DataAccessException("Players full for game");
+            } else if (lowerCasePlayerColor.equals("white") && gameData.whiteUsername() != null) {
+                throw new DataAccessException("Username already taken");
+            } else if (lowerCasePlayerColor.equals("black") && gameData.blackUsername() != null) {
+                throw new DataAccessException("Username already taken");
+            }
+            //System.out.println("passed checks in Service");
+            //System.out.println("grabbing authData with: " + authToken);
+            AuthData authData = authDAO.getAuthDataByAuthToken(authToken);
+            //System.out.println("grabbed authData: " + authData);
+            gameDAO.addUserToGame(authData.username(), gameID, lowerCasePlayerColor);
+        } else {
+            if (lowerCasePlayerColor.equals("white") && gameData.whiteUsername() == null) {
+                throw new DataAccessException("spot already vacant");
+            } else if (lowerCasePlayerColor.equals("black") && gameData.blackUsername() == null) {
+                throw new DataAccessException("spot already vacant");
+            }
+            gameDAO.addUserToGame(null, gameID, lowerCasePlayerColor);
         }
-        //System.out.println("passed checks in Service");
-        //System.out.println("grabbing authData with: " + authToken);
-        AuthData authData = authDAO.getAuthDataByAuthToken(authToken);
-        //System.out.println("grabbed authData: " + authData);
-        gameDAO.addUserToGame(authData.username(), gameID, lowerCasePlayerColor);
     }
 
     public Collection<GameData> getGames(String authToken) throws DataAccessException{

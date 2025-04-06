@@ -175,7 +175,7 @@ public class LoggedInClient {
             }
             else {
                 try {
-                    server.joinGame(authToken, params[1], gameID);
+                    server.joinGame(authToken, params[1], gameID, false);
                 } catch (ResponseException e) {
                     if (detailedErrorMsg) {
                         errorMsg = "";

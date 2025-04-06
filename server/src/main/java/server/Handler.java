@@ -177,17 +177,19 @@ public class Handler {
             String authToken = req.headers("Authorization");
             JsonObject jsonObject = JsonParser.parseString(req.body()).getAsJsonObject();
             String playerColor;
+            boolean removePlayer = false;
             int gameID;
             try {
                 playerColor = jsonObject.get("playerColor").getAsString();
                 gameID = jsonObject.get("gameID").getAsInt();
+                removePlayer = jsonObject.get("removePlayer").getAsBoolean();
             }
             catch(Exception error) {
                 res.status(400);
                 return new Gson().toJson(Map.of("message", "Error: bad request"));
             }
 
-            gameService.joinGame(authToken, playerColor, gameID);
+            gameService.joinGame(authToken, playerColor, gameID, removePlayer);
             res.status(200);
             return "";
         }

@@ -78,9 +78,9 @@ public class ServerFacade {
      * @param gameID ID of game in DB
      * @throws ResponseException if call comes back bad
      */
-    public void joinGame(String authToken, String playerColor, int gameID) throws ResponseException {
+    public void joinGame(String authToken, String playerColor, int gameID, boolean removePlayer) throws ResponseException {
         var path = "/game";
-        this.makeRequest("PUT", path, authToken, new JoinGameRequest(playerColor, gameID), null);
+        this.makeRequest("PUT", path, authToken, new JoinGameRequest(playerColor, gameID, removePlayer), null);
     }
 
     public void updateGame(String authToken, int gameID, ChessGame updatedGame) throws ResponseException {
@@ -205,11 +205,13 @@ class CreateGameRequest {
  * Creates a join Request
  */
 class JoinGameRequest {
+    boolean removePlayer;
     String playerColor;
     int gameID;
-    public JoinGameRequest(String playerColor, int gameID) {
+    public JoinGameRequest(String playerColor, int gameID, boolean removePlayer) {
         this.playerColor = playerColor;
         this.gameID = gameID;
+        this.removePlayer = removePlayer;
     }
 }
 

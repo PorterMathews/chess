@@ -118,7 +118,18 @@ public class GameClient {
     }
 
     public String leave() throws ResponseException {
-        return "";
+        try {
+            server.joinGame(LoggedInClient.getAuthToken(), LoggedInClient.getPlayerColor(), gameID, true);
+        } catch (ResponseException e) {
+            if (detailedErrorMsg) {
+                errorMsg = "";
+                errorMsg = e.getMessage();
+            }
+            throw new ResponseException(400, "Unable to process leave game " + errorMsg);
+        }
+        Repl.setState(State.LOGGEDIN);
+        Repl.setPrompt();
+        return "you have left the game";
     }
 
     public String resign() throws ResponseException {
