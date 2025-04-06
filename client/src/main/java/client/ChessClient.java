@@ -1,6 +1,8 @@
 package client;
 
 import java.util.Arrays;
+
+import chess.ChessBoard;
 import model.*;
 import exception.ResponseException;
 import server.ServerFacade;
@@ -11,6 +13,7 @@ public class ChessClient {
     private final boolean detailedErrorMsg = false;
     private String errorMsg;
     private LoggedInClient postClient;
+
 
     public ChessClient(String serverUrl, LoggedInClient postClient) {
         this.serverUrl = serverUrl;

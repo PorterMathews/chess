@@ -12,8 +12,6 @@ public class Repl implements NotificationHandler  {
     private final GameClient gameClient;
     Scanner scanner = new Scanner(System.in);
     private String result;
-    ChessGame chessGame = new ChessGame();
-    DrawChessBoard drawChessBoard;
     private static final String PRE_LOGIN_COLOR = SET_TEXT_COLOR_GREEN;
     private static final String POST_LOGIN_COLOR = SET_TEXT_COLOR_MAGENTA;
     private static final String IN_GAME_COLOR = SET_TEXT_COLOR_BLUE;
@@ -27,7 +25,6 @@ public class Repl implements NotificationHandler  {
         gameClient = new GameClient(serverUrl, postClient, this);
         preClient = new ChessClient(serverUrl, postClient);
         result = "";
-        drawChessBoard = new DrawChessBoard(chessGame);
     }
 
     /**
@@ -96,8 +93,8 @@ public class Repl implements NotificationHandler  {
      * gameplay script
      */
     public void gameplay() {
-
         if (prompt) {
+            gameClient.setChessBoard();
             System.out.println(IN_GAME_COLOR + gameClient.help());
             System.out.println(DrawChessBoard.drawBoard(LoggedInClient.getPlayerColor()));
             prompt = false;

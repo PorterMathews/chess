@@ -1,9 +1,10 @@
 package client;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-
+import chess.ChessBoard;
+import chess.ChessGame;
+import com.google.gson.Gson;
 import model.*;
 import exception.ResponseException;
 import server.ServerFacade;
@@ -13,12 +14,14 @@ import client.websocket.WebSocketFacade;
 public class GameClient {
     private final ServerFacade server;
     private final String serverUrl;
-    private final boolean detailedErrorMsg = false;
-    private String errorMsg;
-    private static final HashMap<Integer, Integer> ID_LOOKUP = new HashMap<>();
+    private static final boolean detailedErrorMsg = false;
+    private static String errorMsg;
     private final NotificationHandler notificationHandler;
     private WebSocketFacade ws;
     private LoggedInClient postClient;
+    private static int gameID;
+    private DrawChessBoard drawChessBoard;
+    private static ChessBoard board;
 
     public GameClient(String serverUrl, LoggedInClient postClient, NotificationHandler notificationHandler) {
         this.serverUrl = serverUrl;
@@ -51,10 +54,17 @@ public class GameClient {
     }
 
     public String move(String... params) throws ResponseException {
-        return "";
+        if (params.length == 2 && params[0].length() == 2 && params[1].length() == 2) {
+            String pattern = "^[a-h][1-8]$";
+            if (params[0].matches(pattern) && params[1].matches(pattern)) {
+
+            }
+        }
+        throw new ResponseException(400, "Expected: <current space> <target space> i.e. <b1> <c3>");
     }
 
     public String redraw() throws ResponseException {
+        setChessBoard();
         return DrawChessBoard.drawBoard(postClient.getPlayerColor());
     }
 
@@ -117,6 +127,32 @@ public class GameClient {
                 - "leave" - exits the game and removes you as a player
                 - "resign" - forfeit the game (only available to player)
                 - "quit" - exits program""";
+    }
+
+    public void setChessBoard() {
+        List<GameData> gameList;
+        try {
+            gameList = server.listGames(LoggedInClient.getAuthToken());
+        } catch (ResponseException e) {
+            if (detailedErrorMsg) {
+                errorMsg = "";
+                errorMsg = e.getMessage();
+            }
+            throw new RuntimeException("Broke Chess Game Getter 1");
+        }
+         for (GameData game : gameList) {
+             if (game.gameID() == gameID) {
+                 board = new Gson().fromJson((new Gson().toJson(ChessGame.getBoard())), ChessBoard.class);
+             }
+         }
+    }
+
+    public static ChessBoard getChessBoard() {
+        return board;
+    }
+
+    public static void setGameID(int ID) {
+        gameID = ID;
     }
 
     /**

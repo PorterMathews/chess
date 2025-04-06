@@ -1,11 +1,11 @@
 package client;
 
 import chess.*;
+import exception.ResponseException;
 
 import static ui.EscapeSequences.*;
 
 public class DrawChessBoard {
-    static ChessGame chessGame;
     private static final String DARK_TILE_COLOR = SET_BG_COLOR_LIGHT_GREY;
     private static final String LIGHT_TILE_COLOR = SET_BG_COLOR_WHITE;
     private static final String EDGE_TILE_COLOR = SET_BG_COLOR_DARK_GREY;
@@ -14,8 +14,8 @@ public class DrawChessBoard {
     private static final String EDGE_CHARACTER_COLOR = SET_TEXT_COLOR_WHITE;
     private static final String EMPTY = "   ";
 
-    public DrawChessBoard(ChessGame chessGame) {
-        this.chessGame = chessGame;
+    public DrawChessBoard() {
+
     }
 
     /**
@@ -25,7 +25,6 @@ public class DrawChessBoard {
      */
     public static String drawBoard(String playerColor) {
         StringBuilder result = new StringBuilder();
-
         if (playerColor.equals("white")) {
             for (int row = 9; row >= 0; row--) {
                 for (int col = 0; col < 10; col++) {
@@ -96,7 +95,7 @@ public class DrawChessBoard {
      * @return what piece goes in the space, if any
      */
     private static String determinePiece(int row, int col) {
-        ChessPiece chessPiece = ChessGame.getBoard().getPiece(new ChessPosition(row, col));
+        ChessPiece chessPiece =  GameClient.getChessBoard().getPiece(new ChessPosition(row, col));
         if (chessPiece == null) {
             return EMPTY;
         }

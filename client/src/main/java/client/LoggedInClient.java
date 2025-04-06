@@ -26,6 +26,7 @@ public class LoggedInClient {
         this.serverUrl = serverUrl;
         this.notificationHandler = notificationHandler;
         server = new ServerFacade(serverUrl);
+        playerColor = "white";
         errorMsg = "";
     }
 
@@ -167,6 +168,7 @@ public class LoggedInClient {
                 ws.playerJoinsGame(userName, params[1]);
                 Repl.setState(State.INGAME);
                 Repl.setPrompt();
+                GameClient.setGameID(gameID);
                 playerColor = params[1];
                 //DrawChessBoard.drawBoard(playerColor);
                 return String.format("Rejoining game " +params[0]+ " as " + params[1] + " player");
@@ -186,6 +188,7 @@ public class LoggedInClient {
             ws.playerJoinsGame(params[0], params[1]);
             Repl.setState(State.INGAME);
             Repl.setPrompt();
+            GameClient.setGameID(gameID);
             playerColor = params[1];
             return String.format("Joined game " +params[0]+ " as " + params[1] + " player");
         }  else if (Repl.getState().equals(State.INGAME)) {
@@ -213,7 +216,8 @@ public class LoggedInClient {
             ws.observerJoinsGame(userName);
             Repl.setState(State.INGAME);
             Repl.setPrompt();
-            playerColor = "white";
+            int gameID = ID_LOOKUP.get(game);
+            GameClient.setGameID(gameID);
             //DrawChessBoard.drawBoard(playerColor);
             return String.format("observing game " + params[0]);
         }  else if (Repl.getState().equals(State.INGAME)) {
