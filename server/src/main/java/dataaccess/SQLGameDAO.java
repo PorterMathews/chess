@@ -37,6 +37,7 @@ public class SQLGameDAO implements GameDAO {
 
     public void updateGame(int gameID, GameData gameData) throws DataAccessException {
         String statement = "UPDATE GameData SET chessGame = ? WHERE gameID = ?";
+        //System.out.println("🔁 Saving to DB: " + new Gson().toJson(gameData.game()));
         updateData(statement, new Gson().toJson(gameData.game()), gameID);
     }
 

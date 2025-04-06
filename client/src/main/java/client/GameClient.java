@@ -59,7 +59,7 @@ public class GameClient {
         if (params.length == 2 && params[0].length() == 2 && params[1].length() == 2) {
             String pattern = "^[a-h][1-8]$";
             if (params[0].matches(pattern) && params[1].matches(pattern)) {
-                syncBoardFromServer();
+                refreshGameState();
                 char letter;
                 char rank;
                 letter = params[0].charAt(0);
@@ -87,29 +87,15 @@ public class GameClient {
                 ChessMove move = new ChessMove(new ChessPosition(rowCurrent, colCurrent),new ChessPosition(rowTarget, colTarget), null );
                 chessGame.makeMove(move);
                 server.updateGame(LoggedInClient.getAuthToken(), gameID, chessGame);
-                syncBoardFromServer();
-                return "Move made!";
+                refreshGameState();
+                return String.format(DrawChessBoard.drawBoard(LoggedInClient.getPlayerColor(), board)+"\nMove made!");
             }
         }
         throw new ResponseException(400, "Expected: <current space> <target space> i.e. <b1> <c3>");
     }
 
-    public void loadChessGameFromServer() throws ResponseException {
-        List<GameData> gameList = server.listGames(LoggedInClient.getAuthToken());
-        for (GameData game : gameList) {
-            if (game.gameID() == gameID) {
-                this.chessGame = game.game();
-            }
-        }
-    }
-
-    private void syncBoardFromServer() throws ResponseException {
-        loadChessGameFromServer();
-        board = chessGame.getBoard();
-    }
-
     public String redraw() throws ResponseException {
-        syncBoardFromServer();
+        refreshGameState();
         return DrawChessBoard.drawBoard(postClient.getPlayerColor(), board);
     }
 
@@ -174,25 +160,24 @@ public class GameClient {
                 - "quit" - exits program""";
     }
 
-    public void setChessBoard() {
-        List<GameData> gameList;
+    public void refreshGameState() {
         try {
-            gameList = server.listGames(LoggedInClient.getAuthToken());
-        } catch (ResponseException e) {
-            if (detailedErrorMsg) {
-                errorMsg = "";
-                errorMsg = e.getMessage();
+            List<GameData> gameList = server.listGames(LoggedInClient.getAuthToken());
+            for (GameData game : gameList) {
+                if (game.gameID() == gameID) {
+                    this.chessGame = game.game();
+                    this.board = chessGame.getBoard();
+                }
             }
-            throw new RuntimeException("Broke Chess Game Getter 1");
+        } catch (ResponseException e) {
+            throw new RuntimeException("Could not refresh game state: " + e.getMessage());
         }
-         for (GameData game : gameList) {
-             if (game.gameID() == gameID) {
-                 board = chessGame.getBoard();
-             }
-         }
     }
 
     public ChessBoard getChessBoard() {
+        if (board == null) {
+            refreshGameState();
+        }
         return board;
     }
 

@@ -9,6 +9,8 @@ public class DrawChessBoard {
     private static final String DARK_TILE_COLOR = SET_BG_COLOR_LIGHT_GREY;
     private static final String LIGHT_TILE_COLOR = SET_BG_COLOR_WHITE;
     private static final String EDGE_TILE_COLOR = SET_BG_COLOR_DARK_GREY;
+    private static final String DARK_HIGHLIGHTED_TILE_COLOR = SET_BG_COLOR_DARK_GREEN;
+    private static final String LIGHT_HIGHLIGHTED_TILE_COLOR = SET_BG_COLOR_GREEN;
     private static final String LIGHT_PIECE_COLOR = SET_TEXT_COLOR_BLUE;
     private static final String DARK_PIECE_COLOR = SET_TEXT_COLOR_RED;
     private static final String EDGE_CHARACTER_COLOR = SET_TEXT_COLOR_WHITE;
