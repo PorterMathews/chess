@@ -89,6 +89,17 @@ public class ServerFacade {
         makeRequest("PUT", path, authToken, updatedGameData, null);
     }
 
+    public void setGameOver(String authToken, int gameID, String winningColor, String winningMethod) throws ResponseException {
+        String path = "/game/"+gameID+"/end";
+        WinnerData data = new WinnerData(true, winningColor, winningMethod);
+        makeRequest("PUT", path, authToken, data, null);
+    }
+
+    public WinnerData getGameOver(String authToken, int gameID) throws ResponseException {
+        String path = "/game/"+gameID+"/status";
+        return makeRequest("GET", path, authToken, null, WinnerData.class);
+    }
+
     /**
      *
      * @param authToken used for verification
@@ -201,19 +212,6 @@ class CreateGameRequest {
         this.gameName = gameName; }
 }
 
-/**
- * Creates a join Request
- */
-class JoinGameRequest {
-    boolean removePlayer;
-    String playerColor;
-    int gameID;
-    public JoinGameRequest(String playerColor, int gameID, boolean removePlayer) {
-        this.playerColor = playerColor;
-        this.gameID = gameID;
-        this.removePlayer = removePlayer;
-    }
-}
 
 /**
  * Creates a list response

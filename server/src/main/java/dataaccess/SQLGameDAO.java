@@ -4,6 +4,7 @@ import chess.ChessGame;
 import com.google.gson.Gson;
 import model.AuthData;
 import model.GameData;
+import model.WinnerData;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -39,6 +40,15 @@ public class SQLGameDAO implements GameDAO {
         String statement = "UPDATE GameData SET chessGame = ? WHERE gameID = ?";
         //System.out.println("🔁 Saving to DB: " + new Gson().toJson(gameData.game()));
         updateData(statement, new Gson().toJson(gameData.game()), gameID);
+    }
+
+    public void updateWinner(int gameID, WinnerData winnerData) throws DataAccessException {
+        String statement = "UPDATE GameData SET winnerData = ? WHERE gameID = ?";
+        updateData(statement, new Gson().toJson(winnerData), gameID);
+    }
+
+    public WinnerData getWinner(int gameID) throws DataAccessException {
+        return getWinnerDataFromDatabase(gameID);
     }
 
     /**
@@ -111,6 +121,16 @@ public class SQLGameDAO implements GameDAO {
         return new GameData(gameID, whiteUsername, blackUsername, gameName, chessGame);
     }
 
+    private WinnerData readWinner(ResultSet rs) throws SQLException {
+        if (rs.next()) {
+            var winnerDataJson = rs.getString("winnerData");
+            if (winnerDataJson != null) {
+                return new Gson().fromJson(winnerDataJson, WinnerData.class);
+            }
+        }
+        return new WinnerData(false, null, null);
+    }
+
     /**
      *
      * @return all the games from the DB
@@ -154,6 +174,20 @@ public class SQLGameDAO implements GameDAO {
             throw new DataAccessException(String.format("unable to read data: %s", e.getMessage()));
         }
         return null;
+    }
+
+    private WinnerData getWinnerDataFromDatabase(int gameID) throws DataAccessException {
+        try (var conn = DatabaseManager.getConnection()) {
+            var statement = "SELECT winnerData FROM GameData WHERE gameID = ?";
+            try (var ps = conn.prepareStatement(statement)) {
+                ps.setInt(1, gameID);
+                try (var rs = ps.executeQuery()) {
+                    return readWinner(rs);
+                }
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException(String.format("unable to read data: %s", e.getMessage()));
+        }
     }
 
     /**

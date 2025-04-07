@@ -10,6 +10,7 @@ import exception.ResponseException;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
+import model.WinnerData;
 import org.junit.jupiter.api.*;
 import server.Server;
 import server.ServerFacade;
@@ -186,5 +187,40 @@ public class ServerFacadeTests {
         Assertions.assertDoesNotThrow(() -> {
             serverFacade.updateGame("null", 1234, new GameData(1234,null, null,null,new ChessGame()).game());
         });
+    }
+
+    @Test
+    public void testUpdateWinner() throws ResponseException {
+        int gameID = serverFacade.crateGame(existingAuth, "testGame");
+        WinnerData beforewinnerData = serverFacade.getGameOver(existingAuth, gameID);
+        serverFacade.setGameOver(existingAuth, gameID, "white", "checkmate");
+        WinnerData afterWinnerData = serverFacade.getGameOver(existingAuth, gameID);
+        assertNotEquals(beforewinnerData, afterWinnerData);
+        WinnerData winnerData = new WinnerData(true, "white", "checkmate");
+        assertEquals(afterWinnerData, winnerData);
+    }
+
+    @Test
+    public void testUpdateWinnerBad() throws ResponseException {
+        int gameID = serverFacade.crateGame(existingAuth, "testGame");
+        Assertions.assertThrows(ResponseException.class, () -> {
+            brokenFacade.setGameOver(existingAuth, gameID, "white", "checkmate");
+        });
+    }
+
+    @Test
+    public void testGetWinnerBad() throws ResponseException {
+        int gameID = serverFacade.crateGame(existingAuth, "testGame");
+        Assertions.assertThrows(ResponseException.class, () -> {
+            brokenFacade.getGameOver(existingAuth, gameID);
+        });
+    }
+
+    @Test
+    public void testGetWinner() throws ResponseException {
+        int gameID = serverFacade.crateGame(existingAuth, "testGame");
+        WinnerData beforewinnerData = serverFacade.getGameOver(existingAuth, gameID);
+        WinnerData winnerData = new WinnerData(false, null, null);
+        assertEquals(beforewinnerData, winnerData);
     }
 }

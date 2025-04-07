@@ -6,6 +6,7 @@ import com.google.gson.JsonParser;
 import dataaccess.*;
 import model.GameData;
 import model.UserData;
+import model.WinnerData;
 import spark.Request;
 import spark.Response;
 import service.AuthService;
@@ -176,17 +177,16 @@ public class Handler {
         try {
             String authToken = req.headers("Authorization");
             JsonObject jsonObject = JsonParser.parseString(req.body()).getAsJsonObject();
-            String playerColor;
-            boolean removePlayer = false;
-            int gameID;
-            try {
-                playerColor = jsonObject.get("playerColor").getAsString();
-                gameID = jsonObject.get("gameID").getAsInt();
-                removePlayer = jsonObject.get("removePlayer").getAsBoolean();
-            }
-            catch(Exception error) {
+
+            String playerColor = jsonObject.has("playerColor") ? jsonObject.get("playerColor").getAsString() : null;
+            boolean removePlayer = jsonObject.has("removePlayer") && jsonObject.get("removePlayer").getAsBoolean();
+            Integer gameID = jsonObject.has("gameID") && !jsonObject.get("gameID").isJsonNull()
+                    ? jsonObject.get("gameID").getAsInt()
+                    : null;
+
+            if (playerColor == null || gameID == null) {
                 res.status(400);
-                return new Gson().toJson(Map.of("message", "Error: bad request"));
+                return new Gson().toJson(Map.of("message", "Error: bad request - missing fields"));
             }
 
             gameService.joinGame(authToken, playerColor, gameID, removePlayer);
@@ -240,6 +240,45 @@ public class Handler {
             gameService.updateGame(authToken, gameID, gameData);
             res.status(200);
             return "";
+        }
+        catch(DataAccessException error) {
+            if (error.getMessage().equals("Unauthorized to Get Game")) {
+                res.status(401);
+            } return new Gson().toJson(Map.of("message","Error: "+ error.getMessage()));
+        }
+        catch (Exception error) {
+            res.status(500);
+            return new Gson().toJson(Map.of("message", "Error: Internal Server Error"));
+        }
+    }
+
+    public Object updateWinner(Request req, Response res) {
+        try {
+            String authToken = req.headers("Authorization");
+            var winnerData = new Gson().fromJson(req.body(), WinnerData.class);
+            int gameID = Integer.parseInt(req.params("id"));
+            gameService.updateWinner(authToken, gameID, winnerData);
+            res.status(200);
+            return "";
+        }
+        catch(DataAccessException error) {
+            if (error.getMessage().equals("Unauthorized to Get Game")) {
+                res.status(401);
+            } return new Gson().toJson(Map.of("message","Error: "+ error.getMessage()));
+        }
+        catch (Exception error) {
+            res.status(500);
+            return new Gson().toJson(Map.of("message", "Error: Internal Server Error"));
+        }
+    }
+
+    public Object getWinner(Request req, Response res) {
+        try {
+            String authToken = req.headers("Authorization");
+            int gameID = Integer.parseInt(req.params("id"));
+            WinnerData winnerData = gameService.getWinner(authToken, gameID);
+            res.status(200);
+            return new Gson().toJson(winnerData);
         }
         catch(DataAccessException error) {
             if (error.getMessage().equals("Unauthorized to Get Game")) {

@@ -2,6 +2,7 @@ package dataaccess;
 
 import chess.ChessGame;
 import model.GameData;
+import model.WinnerData;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -57,6 +58,14 @@ public class MemoryGameDAO implements GameDAO {
 
     public void updateGame(int gameID, GameData gameData) {
 
+    }
+
+    public void updateWinner(int gameID, WinnerData winnerData) {
+
+    }
+
+    public WinnerData getWinner(int gameID) {
+        return new WinnerData(false, null, null);
     }
 
     /**

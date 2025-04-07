@@ -44,12 +44,13 @@ public class MySqlDataAccess {
               `blackUsername` varchar(256) DEFAULT NULL,
               `gameName` varchar(256) NOT NULL,
               `chessGame` TEXT DEFAULT NULL,
+              `winnerData` TEXT DEFAULT NULL,
               PRIMARY KEY (`gameID`),
               INDEX(`whiteUsername`),
               INDEX(`blackUsername`),
               INDEX(`gameName`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-            """
+            """,
     };
 
     /**

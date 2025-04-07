@@ -203,7 +203,7 @@ public class ServiceTests {
     public void testJoinGameSuccess() throws DataAccessException{
         assertTrue(gameDAO.getGames().isEmpty());
         int gameID = gameService.createGame(existingAuth, "testGame");
-        gameService.joinGame(existingAuth, "BLACK", gameID);
+        gameService.joinGame(existingAuth, "BLACK", gameID, false);
         GameData gameData = gameDAO.getGameByID(gameID);
         assertNotNull(gameData.blackUsername());
         assertEquals("ExistingUser", gameData.blackUsername());
@@ -214,7 +214,7 @@ public class ServiceTests {
         assertTrue(gameDAO.getGames().isEmpty());
         int gameID = gameService.createGame(existingAuth, "testGame");
         Exception exception = assertThrows(DataAccessException.class, () -> {
-            gameService.joinGame(null, "BLACK", gameID);
+            gameService.joinGame(null, "BLACK", gameID, false);
         });
         assertEquals("Unauthorized", exception.getMessage());
     }
@@ -223,7 +223,7 @@ public class ServiceTests {
     public void testJoinGameBadGameID() throws DataAccessException {
         assertTrue(gameDAO.getGames().isEmpty());
         Exception exception = assertThrows(DataAccessException.class, () -> {
-            gameService.joinGame(existingAuth, "BLACK", 1234);
+            gameService.joinGame(existingAuth, "BLACK", 1234, false);
         });
         assertEquals("bad request", exception.getMessage());
     }
@@ -233,7 +233,7 @@ public class ServiceTests {
         assertTrue(gameDAO.getGames().isEmpty());
         int gameID = gameService.createGame(existingAuth, "testGame");
         Exception exception = assertThrows(DataAccessException.class, () -> {
-            gameService.joinGame(existingAuth, "YELLOW", gameID);
+            gameService.joinGame(existingAuth, "YELLOW", gameID, false);
         });
         assertEquals("bad request", exception.getMessage());
     }

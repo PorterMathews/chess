@@ -174,7 +174,7 @@ public class DataAccessTest {
     public void testJoinGameGood() throws DataAccessException{
         assertTrue(gameDAO.getGames().isEmpty());
         int gameID = gameService.createGame(existingAuth, "testGame");
-        gameService.joinGame(existingAuth, "Black", gameID);
+        gameService.joinGame(existingAuth, "Black", gameID, false);
         GameData gameData = gameDAO.getGameByID(gameID);
         assertNotNull(gameData.blackUsername());
         assertEquals("ExistingUser", gameData.blackUsername());
@@ -185,7 +185,7 @@ public class DataAccessTest {
         assertTrue(gameDAO.getGames().isEmpty());
         int gameID = gameService.createGame(existingAuth, "testGame");
         Exception exception = assertThrows(DataAccessException.class, () -> {
-            gameService.joinGame("null", "black", gameID);
+            gameService.joinGame("null", "black", gameID, false);
         });
         assertEquals("Unauthorized", exception.getMessage());
     }
@@ -194,7 +194,7 @@ public class DataAccessTest {
     public void testJoinGameBadGameIDGood() throws DataAccessException {
         assertTrue(gameDAO.getGames().isEmpty());
         Exception exception = assertThrows(DataAccessException.class, () -> {
-            gameService.joinGame(existingAuth, "BlAcK", 1234);
+            gameService.joinGame(existingAuth, "BlAcK", 1234, false);
         });
         assertEquals("bad request", exception.getMessage());
     }
@@ -204,7 +204,7 @@ public class DataAccessTest {
         assertTrue(gameDAO.getGames().isEmpty());
         int gameID = gameService.createGame(existingAuth, "testGame");
         Exception exception = assertThrows(DataAccessException.class, () -> {
-            gameService.joinGame(existingAuth, "GREEN", gameID);
+            gameService.joinGame(existingAuth, "GREEN", gameID, false);
         });
         assertEquals("bad request", exception.getMessage());
     }
@@ -266,16 +266,12 @@ public class DataAccessTest {
         assertNull(chessGame.getBoard().getPiece(new ChessPosition(2, 5)));
         Collection<GameData> gameDataCollection = gameService.getGames(existingAuth);
         GameData gameDataBefore = gameDataCollection.iterator().next();
-        System.out.println(chessGame.getBoard().getPiece(new ChessPosition(2,5)).getPieceType());
-        System.out.println("Game before ID: " + gameDataBefore.gameID());
+        //System.out.println(chessGame.getBoard().getPiece(new ChessPosition(2,5)).getPieceType());
+        //System.out.println("Game before ID: " + gameDataBefore.gameID());
         gameService.updateGame(existingAuth, gameDataBefore.gameID(), new GameData(gameDataBefore.gameID(), null, null, null, chessGame));
         Collection<GameData> gameDataC = gameService.getGames(existingAuth);
         GameData gameDataAfter = gameDataC.iterator().next();
-        System.out.println("Game after ID: " + gameDataAfter.gameID());
-        System.out.println(gameDataAfter.game().getBoard().getPiece(new ChessPosition(2,5)).getPieceType());
-        System.out.println("Before and after same object? " +
-                (gameDataBefore.game() == gameDataAfter.game()));
-        assertEquals(gameDataBefore.game().getBoard().getPiece(new ChessPosition(2,5)).getPieceType(), gameDataAfter.game().getBoard().getPiece(new ChessPosition(2,5)).getPieceType());
+        assertNotEquals(gameDataBefore.game().getBoard().getPiece(new ChessPosition(2,5)), gameDataAfter.game().getBoard().getPiece(new ChessPosition(2,5)));
     }
 
     @Test

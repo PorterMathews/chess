@@ -81,6 +81,20 @@ public class GameService {
         gameDAO.updateGame(gameID, gameData);
     }
 
+    public void updateWinner(String authToken, int gameID, WinnerData winnerData) throws DataAccessException {
+        if (!authDAO.authTokenExists(authToken)) {
+            throw new DataAccessException("Unauthorized to update Winner");
+        }
+        gameDAO.updateWinner(gameID, winnerData);
+    }
+
+    public WinnerData getWinner(String authToken, int gameID) throws DataAccessException {
+        if (!authDAO.authTokenExists(authToken)) {
+            throw new DataAccessException("Unauthorized to get Winner");
+        }
+        return gameDAO.getWinner(gameID);
+    }
+
     public void clearGameData() throws DataAccessException {
         //System.out.println("Service clear 3");
         gameDAO.clearGameData();

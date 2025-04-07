@@ -1,14 +1,16 @@
 package client;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
+
 import chess.*;
 import model.*;
 import exception.ResponseException;
 import server.ServerFacade;
 import client.websocket.NotificationHandler;
 import client.websocket.WebSocketFacade;
+
+import static ui.EscapeSequences.SET_TEXT_COLOR_BLUE;
+import static ui.EscapeSequences.SET_TEXT_COLOR_LIGHT_GREY;
 
 public class GameClient {
     private final ServerFacade server;
@@ -22,6 +24,11 @@ public class GameClient {
     private DrawChessBoard drawChessBoard;
     private ChessBoard board;
     private ChessGame chessGame;
+    private static final Map<Integer, Boolean> gameOverMap = new HashMap<>();
+    Scanner scanner = new Scanner(System.in);
+    private static final String IN_GAME_COLOR = SET_TEXT_COLOR_BLUE;
+    private static final String GAME_COLOR = SET_TEXT_COLOR_LIGHT_GREY;
+
 
     public GameClient(String serverUrl, LoggedInClient postClient, NotificationHandler notificationHandler) {
         this.serverUrl = serverUrl;
@@ -56,6 +63,7 @@ public class GameClient {
     }
 
     public String move(String... params) throws ResponseException, InvalidMoveException {
+        checkIfGameIsOver();
         if (params.length == 2 && params[0].length() == 2 && params[1].length() == 2) {
             String pattern = "^[a-h][1-8]$";
             if (params[0].matches(pattern) && params[1].matches(pattern)) {
@@ -118,6 +126,7 @@ public class GameClient {
     }
 
     public String leave() throws ResponseException {
+        checkIfGameIsOver();
         try {
             server.joinGame(LoggedInClient.getAuthToken(), LoggedInClient.getPlayerColor(), gameID, true);
         } catch (ResponseException e) {
@@ -133,7 +142,24 @@ public class GameClient {
     }
 
     public String resign() throws ResponseException {
-        return "";
+        checkIfGameIsOver();
+        String response = "";
+        while (!response.equals("yes") && !response.equals("no") &&
+                !response.equals("y") && !response.equals("n")) {
+            System.out.println(IN_GAME_COLOR + "Are you sure you want to resign?");
+            System.out.print(GAME_COLOR + "[Resign?] yes/no >>> ");
+            String line = scanner.nextLine();
+            var tokens = line.split(" ");
+            if (tokens.length > 0)
+                response = tokens[0].toLowerCase();
+        }
+
+        if (response.equals("yes") || response.equals("y")) {
+            gameOverMap.put(gameID, true);
+            return "You have resigned. GG!";
+        }
+
+        return "You did not resign, phew";
     }
 
     /**
@@ -173,6 +199,12 @@ public class GameClient {
                 - "leave" - exits the game and removes you as a player
                 - "resign" - forfeit the game (only available to player)
                 - "quit" - exits program""";
+    }
+
+    private void checkIfGameIsOver() throws ResponseException {
+        if (gameOverMap.getOrDefault(gameID, false)) {
+            throw new ResponseException(400, "The game is over");
+        }
     }
 
     private ChessPosition inputToPosition  (String input) {

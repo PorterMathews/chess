@@ -22,10 +22,13 @@ public class Server {
         Spark.post("/user", handler::register);
         Spark.post("/session", handler::login);
         Spark.delete("/session", handler::logout);
-        Spark.put("/game/:id", handler::updateGame);
         Spark.post("/game", handler::createGame);
         Spark.put("/game", handler::joinGame);
         Spark.get("/game", handler::getGames);
+        Spark.put("/game/:id/end", handler::updateWinner);
+        Spark.get("/game/:id/status", handler::getWinner);
+        Spark.put("/game/:id", handler::updateGame);
+
 
         Spark.awaitInitialization();
         return Spark.port();
