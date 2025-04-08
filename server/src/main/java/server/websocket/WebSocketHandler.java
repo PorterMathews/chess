@@ -36,6 +36,7 @@ public class WebSocketHandler {
             case CONNECT -> connectUser(command, session);
             case MAKE_MOVE -> makeMove(new Gson().fromJson(message, MakeMoveCommand.class), session);
             case LEAVE -> leave(command, session);
+            case RESIGN -> resign(command, session);
         }
     }
 
@@ -56,8 +57,24 @@ public class WebSocketHandler {
     private void connectUser(UserGameCommand command, Session session) throws IOException {
         try {
             AuthData auth = authDAO.getAuthDataByAuthToken(command.getAuthToken());
+            if (auth == null) {
+                throw new DataAccessException("Error: bad auth");
+            }
             String username = auth.username();
-            String role = command.isObserver() ? "observer" : getRole(username, command.getGameID());
+            String role;
+            GameData gameData = gameDAO.getGameByID(command.getGameID());
+            if (gameData == null) {
+                throw new DataAccessException("Error: bad gameID");
+            }
+
+            if (username.equals(gameData.whiteUsername())) {
+                role = "white";
+            } else if (username.equals(gameData.blackUsername())) {
+                role = "black";
+            } else {
+                role = "observer";
+            }
+
 
             Connection connection = new Connection(username, command.getGameID(), role, session);
             connections.add(connection);
@@ -109,14 +126,14 @@ public class WebSocketHandler {
             connections.broadcastToOthers(gameID, username, notifi);
 
             ChessGame.TeamColor turn = chessGame.getTeamTurn();
-            if (chessGame.isInCheck(turn)) {
-                connections.broadcastAll(gameID, new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, turn + " is in check"));
-            }
+
             if (chessGame.isInStalemate(turn)) {
                 connections.broadcastAll(gameID, new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, "Stalemate!"));
             }
             if (chessGame.isInCheckmate(turn)) {
                 connections.broadcastAll(gameID, new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, "Checkmate!"));
+            }else if (chessGame.isInCheck(turn)) {
+                connections.broadcastAll(gameID, new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, turn + " is in check"));
             }
 
         } catch (InvalidMoveException | DataAccessException e) {
@@ -130,11 +147,26 @@ public class WebSocketHandler {
             String username = auth.username();
             String role = getRole(username, command.getGameID());
 
-            Connection connection = new Connection(username, command.getGameID(), role, session);
             connections.remove(username, command.getGameID(), role);
 
             NotificationMessage notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, username + " has left the game");
-            connections.broadcast(connection, notification);
+            connections.broadcastAll(command.getGameID(), notification);
+        } catch (DataAccessException e) {
+            ErrorMessage error = new ErrorMessage("Error: " + e.getMessage());
+            session.getRemote().sendString(new Gson().toJson(error));
+        }
+    }
+
+    public void resign(UserGameCommand command, Session session) throws IOException {
+        try {
+            AuthData auth = authDAO.getAuthDataByAuthToken(command.getAuthToken());
+            String username = auth.username();
+            String role = getRole(username, command.getGameID());
+
+            connections.remove(username, command.getGameID(), role);
+
+            NotificationMessage notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, username + " has resigned");
+            connections.broadcastAll(command.getGameID(), notification);
         } catch (DataAccessException e) {
             ErrorMessage error = new ErrorMessage("Error: " + e.getMessage());
             session.getRemote().sendString(new Gson().toJson(error));

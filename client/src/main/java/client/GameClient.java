@@ -180,7 +180,7 @@ public class GameClient {
         return "you have left the game";
     }
 
-    public String resign() throws ResponseException {
+    public String resign() throws ResponseException, IOException {
         checkIfGameIsOver();
         checkObserver();
         String response = "";
@@ -200,6 +200,11 @@ public class GameClient {
             } else {
                 server.setGameOver(LoggedInClient.getAuthToken(), gameID, "black", "resign");
             }
+            if (ws != null) {
+                ws.close();
+            }
+            ws = new WebSocketFacade(serverUrl, notificationHandler);
+            ws.resign(LoggedInClient.getAuthToken(), gameID, false);
             return "You have resigned. GG!";
         }
 
