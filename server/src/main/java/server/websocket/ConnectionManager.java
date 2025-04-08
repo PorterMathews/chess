@@ -1,16 +1,16 @@
 package server.websocket;
 
-import org.eclipse.jetty.websocket.api.Session;
-import websocket.messages.Notification;
+import com.google.gson.Gson;
+import websocket.messages.NotificationMessage;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ConnectionManager {
     public final ConcurrentHashMap<String, List<Connection>> connections = new ConcurrentHashMap<>();
+    private boolean detailedErrorMsg = true;
 
     public void add(Connection c) {
         var connection = new Connection(c.userName, c.gameID, c.role, c.session);
@@ -44,20 +44,22 @@ public class ConnectionManager {
         }
     }
 
-    public void broadcast(Connection excludeConnection, Notification notification) throws IOException {
+    public void broadcast(Connection excludeConnection, NotificationMessage notification) throws IOException {
         var removeList = new ArrayList<Connection>();
         for (List<Connection> connectionList : connections.values()) {
             for (Connection c : connectionList) {
+                debug(String.format("Broadcast1: Sending to" + c.userName + ": "  + notification.getMessage()));
                 if (!c.session.isOpen()) {
                     removeList.add(c);
                     continue;
                 }
                 if (c.gameID == excludeConnection.gameID && !c.equals(excludeConnection)) {
-                    c.send(notification.toString());
+                    c.send(new Gson().toJson(notification));
                 }
             }
         }
         for (Connection c : removeList) {
+            debug(String.format("Broadcast2: Sending to" + c.userName + ": "  + notification.getMessage()));
             List<Connection> list = connections.get(c.userName);
             if (list != null) {
                 list.remove(c);
@@ -65,6 +67,44 @@ public class ConnectionManager {
                     connections.remove(c.userName);
                 }
             }
+        }
+    }
+
+    public List<Connection> getConnectionsInGame(int gameID) {
+        List<Connection> result = new ArrayList<>();
+        for (List<Connection> list : connections.values()) {
+            for (Connection c : list) {
+                if (c.gameID == gameID) result.add(c);
+            }
+        }
+        return result;
+    }
+
+    public void broadcastToOthers(int gameID, String excludeUser, NotificationMessage msg) throws IOException {
+        for (List<Connection> list : connections.values()) {
+            for (Connection c : list) {
+                debug(String.format("To Others: Sending to" + c.userName + ": "  + msg.getMessage()));
+                if (c.gameID == gameID && !c.userName.equals(excludeUser)) {
+                    c.send(new Gson().toJson(msg));
+                }
+            }
+        }
+    }
+
+    public void broadcastAll(int gameID, NotificationMessage msg) throws IOException {
+        for (List<Connection> list : connections.values()) {
+            for (Connection c : list) {
+                if (c.gameID == gameID) {
+                    debug(String.format("To All: Sending to" + c.userName + ": "  + msg.getMessage()));
+                    c.send(new Gson().toJson(msg));
+                }
+            }
+        }
+    }
+
+    private void debug(String input) {
+        if (detailedErrorMsg) {
+            System.out.println(input);
         }
     }
 }

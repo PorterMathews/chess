@@ -1,15 +1,17 @@
 package server.websocket;
 
-import chess.ChessGame;
+import chess.*;
+import chess.InvalidMoveException;
 import com.google.gson.Gson;
 import dataaccess.*;
 import exception.ResponseException;
 import model.*;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.*;
+import websocket.commands.MakeMoveCommand;
 import websocket.messages.*;
 import websocket.commands.UserGameCommand;
-import websocket.messages.Notification;
+import websocket.messages.*;
 
 import java.io.IOException;
 
@@ -32,17 +34,17 @@ public class WebSocketHandler {
         UserGameCommand command = new Gson().fromJson(message, UserGameCommand.class);
         switch (command.getCommandType()) {
             case CONNECT -> connectUser(command, session);
+            case MAKE_MOVE -> makeMove(new Gson().fromJson(message, MakeMoveCommand.class), session);
         }
     }
 
+
     @OnWebSocketConnect
     public void onConnect(Session session) {
-        System.out.println("✅ WebSocket connection established with session: " + session);
     }
 
     @OnWebSocketClose
     public void onClose(Session session, int statusCode, String reason) {
-        System.out.println("❌ Connection closed: " + reason);
     }
 
     @OnWebSocketError
@@ -66,12 +68,12 @@ public class WebSocketHandler {
             debug("loaded game: " + new Gson().toJson(loadGame));
             session.getRemote().sendString(new Gson().toJson(loadGame));
 
-            Notification notification;
+            NotificationMessage notification;
             if (role.equals("observer")) {
-                notification = new Notification(Notification.Type.NOTIFICATION,
+                notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION,
                         username + " has joined the game as an observer");
             } else {
-                notification = new Notification(Notification.Type.NOTIFICATION,
+                notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION,
                         username + " has joined the game as the " + role + " player");
             }
             connections.broadcast(connection, notification);
@@ -81,47 +83,57 @@ public class WebSocketHandler {
         }
     }
 
+    private void makeMove(MakeMoveCommand command, Session session) throws IOException {
+        try {
+            // 1. Auth + game fetch
+            AuthData auth = authDAO.getAuthDataByAuthToken(command.getAuthToken());
+            String username = auth.username();
+            int gameID = command.getGameID();
+            ChessMove move = command.getMove();
 
+            GameData gameData = gameDAO.getGameByID(gameID);
+            ChessGame chessGame = gameData.game();
 
-    private void playerJoin(String userName, String playerColor, Session session) throws IOException {
-        Connection connection = new Connection(userName, 1, playerColor, session);
-        connections.add(connection);
-        var message = String.format(userName + " has joined the game as the " + playerColor + " player");
-        var notification = new Notification(Notification.Type.PLAYERJOIN, message);
-        connections.broadcast(connection, notification);
+            // 2. Validate and apply move
+            chessGame.makeMove(move); // This can throw InvalidMoveException
+
+            // 3. Update DB
+            gameDAO.updateGame(gameID, gameData);
+
+            // 4. Send LOAD_GAME to all clients
+            LoadGameMessage loadGame = new LoadGameMessage(chessGame);
+            for (Connection conn : connections.getConnectionsInGame(gameID)) {
+                conn.send(new Gson().toJson(loadGame));
+            }
+
+            // 5. Notify others what move was made
+            String moveDesc = String.format("%s moved from %s to %s", username,
+                    posToString(move.getStartPosition()), posToString(move.getEndPosition()));
+            NotificationMessage notifi  = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, moveDesc);
+            connections.broadcastToOthers(gameID, username, notifi);
+
+            // 6. Notify all if check/stalemate/checkmate
+            ChessGame.TeamColor turn = chessGame.getTeamTurn();
+            if (chessGame.isInCheck(turn)) {
+                connections.broadcastAll(gameID, new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, turn + " is in check"));
+            }
+            if (chessGame.isInStalemate(turn)) {
+                connections.broadcastAll(gameID, new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, "Stalemate!"));
+            }
+            if (chessGame.isInCheckmate(turn)) {
+                connections.broadcastAll(gameID, new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, "Checkmate!"));
+            }
+
+        } catch (InvalidMoveException | DataAccessException e) {
+            session.getRemote().sendString(new Gson().toJson(new ErrorMessage("Error: " + e.getMessage())));
+        }
     }
 
-    private void observerJoin(String userName, Session session) throws IOException {
-        Connection connection = new Connection(userName, 1, "observer", session);
-        connections.add(connection);
-        var message = String.format(userName + " has joined the game as an observer");
-        var notification = new Notification(Notification.Type.OBSERVERJOIN, message);
-        connections.broadcast(connection, notification);
+    private String posToString(ChessPosition pos) {
+        char col = (char) ('a' + pos.getColumn() - 1);
+        return "" + col + pos.getRow();
     }
 
-    private void moveMade() throws IOException {
-
-    }
-
-    private void playerLeft() throws IOException {
-
-    }
-
-    private void observerLeft() throws IOException {
-
-    }
-
-    private void playerResigned() throws IOException {
-
-    }
-
-    private void check() throws IOException {
-
-    }
-
-    private void checkMate() throws IOException {
-
-    }
 
     private String getRole(String username, int gameID) throws DataAccessException {
         GameData game = gameDAO.getGameByID(gameID);

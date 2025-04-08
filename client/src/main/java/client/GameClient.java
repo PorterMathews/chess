@@ -1,5 +1,6 @@
 package client;
 
+import java.io.IOException;
 import java.util.*;
 
 import chess.*;
@@ -59,10 +60,12 @@ public class GameClient {
             return ex.getMessage();
         } catch (InvalidMoveException e) {
             throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
-    public String move(String... params) throws ResponseException, InvalidMoveException {
+    public String move(String... params) throws ResponseException, InvalidMoveException, IOException {
         checkIfGameIsOver();
         checkObserver();
         checkTurn();
@@ -87,6 +90,12 @@ public class GameClient {
                 } else {
                     move = new ChessMove(currentPosition, targetPosition, null);
                 }
+                if (ws != null) {
+                    ws.close();
+                }
+                ws = new WebSocketFacade(serverUrl, notificationHandler);
+                ws.makeMove(LoggedInClient.getAuthToken(), gameID, false, move);
+
                 try {
                     chessGame.makeMove(move);
                 } catch (InvalidMoveException e) {
@@ -106,8 +115,9 @@ public class GameClient {
                     result = ("CHECKMATE!\n" + getOppositeTeam() + " won");
                     server.setGameOver(LoggedInClient.getAuthToken(), gameID, getOppositeTeam(), "checkmate");
                 }
-                return String.format(DrawChessBoard.drawBoard(LoggedInClient.getPlayerColor(), board, null)+
-                        IN_GAME_COLOR + "Move made!\n" +result + RESET_TEXT_COLOR);
+//                return String.format(DrawChessBoard.drawBoard(LoggedInClient.getPlayerColor(), board, null)+
+//                        IN_GAME_COLOR + "Move made!\n" +result + RESET_TEXT_COLOR);
+                return String.format(IN_GAME_COLOR + "Move made!\n" +result + RESET_TEXT_COLOR);
             }
         }
         throw new ResponseException(400, "Expected: <current space> <target space> i.e. <b1> <c3>");
@@ -231,6 +241,7 @@ public class GameClient {
     }
 
     private void checkTurn() throws ResponseException {
+        refreshGameState();
         if (!getTeamTurn().equals(LoggedInClient.getPlayerColor())) {
             throw new ResponseException(400, "Not your turn");
         }

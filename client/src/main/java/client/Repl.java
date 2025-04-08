@@ -4,7 +4,7 @@ import java.util.Scanner;
 import static ui.EscapeSequences.*;
 import chess.*;
 import client.websocket.NotificationHandler;
-import websocket.messages.Notification;
+import websocket.messages.NotificationMessage;
 
 public class Repl implements NotificationHandler  {
     private final ChessClient preClient;
@@ -16,6 +16,7 @@ public class Repl implements NotificationHandler  {
     private static final String POST_LOGIN_COLOR = SET_TEXT_COLOR_MAGENTA;
     private static final String IN_GAME_COLOR = SET_TEXT_COLOR_BLUE;
     private static final String GAME_COLOR = SET_TEXT_COLOR_LIGHT_GREY;
+    private static final String WS_COLOR = SET_TEXT_COLOR_YELLOW;
     private static State state = State.LOGGEDOUT;
     private static boolean prompt = true;
 
@@ -96,10 +97,10 @@ public class Repl implements NotificationHandler  {
         if (prompt) {
             gameClient.refreshGameState();
             System.out.println(IN_GAME_COLOR + gameClient.help());
-            System.out.println(DrawChessBoard.drawBoard(LoggedInClient.getPlayerColor(), gameClient.getChessBoard(), null));
+            //System.out.println(DrawChessBoard.drawBoard(LoggedInClient.getPlayerColor(), gameClient.getChessBoard(), null));
             prompt = false;
         }
-        printPromptInGame();
+        //printPromptInGame();
         String line = scanner.nextLine();
 
         try {
@@ -124,9 +125,11 @@ public class Repl implements NotificationHandler  {
         System.out.print("\n" + GAME_COLOR + "[In game] >>> ");
     }
 
-    public void notify(Notification notification) {
+    @Override
+    public void notify(NotificationMessage notification) {
         System.out.print("\033[2K\r");
-        System.out.println(GAME_COLOR + notification.message());
+        System.out.flush();
+        System.out.println(WS_COLOR + notification.getMessage());
         switch (state) {
             case LOGGEDOUT -> printPromptLogout();
             case LOGGEDIN -> printPromptLogin();
@@ -135,6 +138,7 @@ public class Repl implements NotificationHandler  {
     }
 
     public void loadGame(ChessGame game) {
+        System.out.print("\033[2K\r");
         System.out.println(DrawChessBoard.drawBoard(LoggedInClient.getPlayerColor(), game.getBoard(), null));
         switch (state) {
             case LOGGEDOUT -> printPromptLogout();

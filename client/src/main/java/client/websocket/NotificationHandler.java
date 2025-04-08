@@ -1,9 +1,9 @@
 package client.websocket;
 
 import chess.ChessGame;
-import websocket.messages.Notification;
+import websocket.messages.NotificationMessage;
 
 public interface NotificationHandler {
-    void notify(Notification notification);
+    void notify(NotificationMessage notification);
     void loadGame(ChessGame game);
 }
