@@ -2,7 +2,6 @@ package client;
 
 import java.io.IOException;
 import java.util.*;
-
 import chess.*;
 import model.*;
 import exception.ResponseException;
@@ -15,16 +14,14 @@ import static ui.EscapeSequences.*;
 public class GameClient {
     private final ServerFacade server;
     private final String serverUrl;
-    private static final boolean detailedErrorMsg = true;
+    private static final boolean detailedErrorMsg = false;
     private static String errorMsg;
     private final NotificationHandler notificationHandler;
     private WebSocketFacade ws;
     private LoggedInClient postClient;
     private static int gameID;
-    private DrawChessBoard drawChessBoard;
     private ChessBoard board;
     private ChessGame chessGame;
-    private boolean gameOver;
     Scanner scanner = new Scanner(System.in);
     private static final String IN_GAME_COLOR = SET_TEXT_COLOR_BLUE;
     private static final String GAME_COLOR = SET_TEXT_COLOR_LIGHT_GREY;
@@ -36,10 +33,13 @@ public class GameClient {
         server = new ServerFacade(serverUrl);
         this.postClient = postClient;
         errorMsg = "";
-        gameOver = false;
     }
 
-
+    /**
+     *
+     * @param input from the user
+     * @return something to be printed out
+     */
     public String eval(String input) {
         try {
             var tokens = input.split(" ");
@@ -65,6 +65,14 @@ public class GameClient {
         }
     }
 
+    /**
+     *
+     * @param params input
+     * @return something to be printed
+     * @throws ResponseException
+     * @throws InvalidMoveException
+     * @throws IOException
+     */
     public String move(String... params) throws ResponseException, InvalidMoveException, IOException {
         checkIfGameIsOver();
         checkObserver();
@@ -123,11 +131,22 @@ public class GameClient {
         throw new ResponseException(400, "Expected: <current space> <target space> i.e. <b1> <c3>");
     }
 
+    /**
+     *
+     * @return the board
+     * @throws ResponseException
+     */
     public String redraw() throws ResponseException {
         refreshGameState();
         return DrawChessBoard.drawBoard(postClient.getPlayerColor(), board, null);
     }
 
+    /**
+     * called to highlight the moves for a certain piece
+     * @param params piece location
+     * @return
+     * @throws ResponseException
+     */
     public String highlight(String... params) throws ResponseException {
         checkIfGameIsOver();
         if (params.length == 1 && params[0].length() == 2) {
@@ -142,12 +161,17 @@ public class GameClient {
                     throw new ResponseException(400, "No valid moves for that piece");
                 }
                 System.out.println(DrawChessBoard.drawBoard(LoggedInClient.getPlayerColor(), board, moves));
-                return "Highlighted!";
+                return "Highlighted move from "+params[0]+"!";
             }
         }
         throw new ResponseException(400, "Expected: <space> i.e. <b1> <c3>");
     }
 
+    /**
+     *
+     * @return response from taking you back
+     * @throws ResponseException
+     */
     public String back() throws ResponseException {
         if (Repl.getState().equals(State.INGAME)) {
             Repl.setState(State.LOGGEDIN);
@@ -158,6 +182,12 @@ public class GameClient {
         throw new ResponseException(400, "Back, back to where? Try quit instead");
     }
 
+    /**
+     * able to be called
+     * @return
+     * @throws ResponseException
+     * @throws IOException
+     */
     public String leave() throws ResponseException, IOException {
         checkIfGameIsOver();
         if (ws != null) {
@@ -179,6 +209,12 @@ public class GameClient {
         return "you have left the game";
     }
 
+    /**
+     *
+     * @return response
+     * @throws ResponseException
+     * @throws IOException
+     */
     public String resign() throws ResponseException, IOException {
         checkIfGameIsOver();
         checkObserver();
@@ -249,6 +285,10 @@ public class GameClient {
                 - "quit" - exits program""";
     }
 
+    /**
+     * throws error if it isn't your turn
+     * @throws ResponseException
+     */
     private void checkTurn() throws ResponseException {
         refreshGameState();
         if (!getTeamTurn().equals(LoggedInClient.getPlayerColor())) {
@@ -259,6 +299,10 @@ public class GameClient {
         }
     }
 
+    /**
+     * throws error if you are an observer, use to restrict actions
+     * @throws ResponseException
+     */
     private void checkObserver() throws ResponseException {
         debug("you are playing as " + LoggedInClient.getPlayerColor());
         if (LoggedInClient.getPlayerColor().equals("observer")) {
@@ -266,6 +310,10 @@ public class GameClient {
         }
     }
 
+    /**
+     *
+     * @return what team you're on
+     */
     private String getTeamTurn() {
         if (chessGame.getTeamTurn().equals(ChessGame.TeamColor.WHITE)) {
             return "white";
@@ -274,6 +322,10 @@ public class GameClient {
         }
     }
 
+    /**
+     *
+     * @return the opposite team color
+     */
     private String getOppositeTeam() {
         if (getTeamTurn().equals("white")) {
             return "black";
@@ -282,6 +334,10 @@ public class GameClient {
         }
     }
 
+    /**
+     * If game is over, tells you how it is. Used to restrict actions
+     * @throws ResponseException
+     */
     private void checkIfGameIsOver() throws ResponseException {
         WinnerData winnerData = server.getGameOver(LoggedInClient.getAuthToken(), gameID);
         if (winnerData.gameIsOver()) {
@@ -293,12 +349,20 @@ public class GameClient {
         }
     }
 
+    /**
+     * takes user input and turns into a chess position
+     * @param input from user
+     * @return
+     */
     private ChessPosition inputToPosition  (String input) {
         int col = input.charAt(0) - 'a' + 1;
         int row = Character.getNumericValue(input.charAt(1));
         return new ChessPosition(row, col);
     }
 
+    /**
+     * makes sure game board is up to date
+     */
     public void refreshGameState() {
         try {
             List<GameData> gameList = server.listGames(LoggedInClient.getAuthToken());
@@ -313,6 +377,10 @@ public class GameClient {
         }
     }
 
+    /**
+     * Helps with pawn promotion
+     * @return
+     */
     private ChessPiece.PieceType askPiecePromotion() {
         String response = "";
         while (true) {
@@ -337,13 +405,10 @@ public class GameClient {
         }
     }
 
-    public ChessBoard getChessBoard() {
-        if (board == null) {
-            refreshGameState();
-        }
-        return board;
-    }
-
+    /**
+     * sets ID
+     * @param ID
+     */
     public static void setGameID(int ID) {
         gameID = ID;
     }

@@ -1,12 +1,9 @@
 package client;
 
 import chess.*;
-import exception.ResponseException;
-
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
-
 import static ui.EscapeSequences.*;
 
 public class DrawChessBoard {
@@ -56,6 +53,11 @@ public class DrawChessBoard {
         return result.toString();
     }
 
+    /**
+     *
+     * @param highlightedMoves spaces to be highlighted
+     * @return positions from the moves
+     */
     private static Set<ChessPosition> movesToPositions(Collection<ChessMove> highlightedMoves) {
         Set<ChessPosition> positions = new HashSet<>();
         for (ChessMove move : highlightedMoves) {
@@ -64,6 +66,11 @@ public class DrawChessBoard {
         return positions;
     }
 
+    /**
+     *
+     * @param highlightedMoves moves that are to be highlighted
+     * @return the position you are on
+     */
     private static ChessPosition getMyPosition(Collection<ChessMove> highlightedMoves) {
         for (ChessMove move : highlightedMoves) {
             return move.getStartPosition();

@@ -11,7 +11,6 @@ import exception.ResponseException;
 import server.ServerFacade;
 import client.websocket.NotificationHandler;
 import client.websocket.WebSocketFacade;
-import websocket.commands.UserGameCommand;
 
 public class LoggedInClient {
 
@@ -20,7 +19,7 @@ public class LoggedInClient {
     private final ServerFacade server;
     private final String serverUrl;
     private static ChessGame.TeamColor playerColor;
-    private static final boolean detailedErrorMsg = true;
+    private static final boolean detailedErrorMsg = false;
     private static String errorMsg;
     private static final HashMap<Integer, Integer> ID_LOOKUP = new HashMap<>();
     private final NotificationHandler notificationHandler;
@@ -169,7 +168,7 @@ public class LoggedInClient {
             setPlayerColor(passedPlayerColor);
             debug("looking up gameID");
             int gameID = ID_LOOKUP.get(game);
-            //debug("checking if part of game: " + gameID);
+            debug("checking if part of game: " + gameID);
             if (alreadyPartOfGame(gameList, gameID, passedPlayerColor)) {
                 if (ws != null) {
                     ws.close();
@@ -180,7 +179,6 @@ public class LoggedInClient {
                 Repl.setPrompt();
                 GameClient.setGameID(gameID);
                 setPlayerColor(params[1]);
-                //DrawChessBoard.drawBoard(playerColor);
                 return String.format("Rejoining game " +params[0]+ " as " + params[1] + " player");
             }
             else {
@@ -422,7 +420,10 @@ public class LoggedInClient {
         return "observer";
     }
 
-
+    /**
+     * used to set player color
+     * @param string desired color, can be null
+     */
     private void setPlayerColor(String string) {
         debug("setting player color");
         if (string == null) {
@@ -446,14 +447,26 @@ public class LoggedInClient {
         return userName;
     }
 
+    /**
+     * sets username
+     * @param name
+     */
     public static void setUserName(String name) {
         userName = name;
     }
 
+    /**
+     * sets auth
+     * @param auth
+     */
     public static void setAuthToken(String auth) {
         authToken = auth;
     }
 
+    /**
+     * gets auth
+     * @return
+     */
     public static String getAuthToken() {
         return authToken;
     }

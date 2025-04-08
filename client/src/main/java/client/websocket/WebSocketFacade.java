@@ -2,9 +2,6 @@ package client.websocket;
 
 import static ui.EscapeSequences.*;
 import chess.ChessMove;
-import client.ChessClient;
-import client.DrawChessBoard;
-import client.GameClient;
 import com.google.gson.Gson;
 import exception.ResponseException;
 import websocket.commands.MakeMoveCommand;
@@ -22,7 +19,12 @@ public class WebSocketFacade extends Endpoint {
     NotificationHandler notificationHandler;
 
 
-
+    /**
+     *
+     * @param url wrl
+     * @param notificationHandler handler
+     * @throws ResponseException when things go bad
+     */
     public WebSocketFacade(String url, NotificationHandler notificationHandler) throws ResponseException {
         try {
             url = url.replace("http", "ws");
@@ -32,7 +34,6 @@ public class WebSocketFacade extends Endpoint {
             WebSocketContainer container = ContainerProvider.getWebSocketContainer();
             this.session = container.connectToServer(this, socketURI);
 
-            //set message handler
             session.addMessageHandler(new MessageHandler.Whole<String>() {
                 @Override
                 public void onMessage(String message) {
@@ -59,17 +60,32 @@ public class WebSocketFacade extends Endpoint {
         }
     }
 
-    //Endpoint requires this method, but you don't have to do anything
+    /**
+     * needed for some reason
+     * @param session session
+     * @param endpointConfig config
+     */
     @Override
     public void onOpen(Session session, EndpointConfig endpointConfig) {
     }
 
+    /**
+     * closes a connection
+     * @throws IOException
+     */
     public void close() throws IOException {
         if (session != null && session.isOpen()) {
             session.close();
         }
     }
 
+    /**
+     * helps peeps connect
+     * @param authToken
+     * @param gameID
+     * @param asObserver whither or not you are an observer
+     * @throws ResponseException
+     */
     public void connectToGame(String authToken, int gameID, boolean asObserver) throws ResponseException {
         try {
             UserGameCommand connectCommand = new UserGameCommand(UserGameCommand.CommandType.CONNECT, authToken, gameID, asObserver);
@@ -79,6 +95,14 @@ public class WebSocketFacade extends Endpoint {
         }
     }
 
+    /**
+     * help you make a move
+     * @param authToken
+     * @param gameID
+     * @param asObserver
+     * @param move the move you are trying to make
+     * @throws ResponseException
+     */
     public void makeMove(String authToken, int gameID, boolean asObserver, ChessMove move) throws ResponseException {
         try {
             MakeMoveCommand moveCommand = new MakeMoveCommand(UserGameCommand.CommandType.MAKE_MOVE, move, authToken, gameID, asObserver);
@@ -88,6 +112,13 @@ public class WebSocketFacade extends Endpoint {
         }
     }
 
+    /**
+     * help you leave the game
+     * @param authToken
+     * @param gameID
+     * @param asObserver
+     * @throws ResponseException
+     */
     public void leaveGame(String authToken, int gameID, boolean asObserver) throws ResponseException {
         try {
             UserGameCommand connectCommand = new UserGameCommand(UserGameCommand.CommandType.LEAVE, authToken, gameID, asObserver);
@@ -97,6 +128,14 @@ public class WebSocketFacade extends Endpoint {
         }
     }
 
+
+    /**
+     * helps peeps resign
+     * @param authToken
+     * @param gameID
+     * @param asObserver
+     * @throws ResponseException
+     */
     public void resign(String authToken, int gameID, boolean asObserver) throws ResponseException {
         try {
             UserGameCommand connectCommand = new UserGameCommand(UserGameCommand.CommandType.RESIGN, authToken, gameID, asObserver);

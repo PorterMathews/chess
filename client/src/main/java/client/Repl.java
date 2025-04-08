@@ -113,30 +113,31 @@ public class Repl implements NotificationHandler  {
         System.out.println();
     }
 
+    /**
+     * prints prompt
+     */
     private void printPromptLogout() {
         System.out.print("\n" + GAME_COLOR + "[Logged out] >>> ");
     }
 
+    /**
+     * prints prompt
+     */
     private void printPromptLogin() {
         System.out.print("\n" + GAME_COLOR + "[Logged in as "+LoggedInClient.getUsername()+"] >>> ");
     }
 
+    /**
+     * prints prompt
+     */
     private void printPromptInGame() {
         System.out.print("\n" + GAME_COLOR + "[In game] >>> ");
     }
 
-    @Override
-    public void notify(NotificationMessage notification) {
-        System.out.print("\033[2K\r");
-        System.out.flush();
-        System.out.println(WS_COLOR + notification.getMessage());
-        switch (state) {
-            case LOGGEDOUT -> printPromptLogout();
-            case LOGGEDIN -> printPromptLogin();
-            default -> printPromptInGame();
-        }
-    }
-
+    /**
+     * draws the board and prompts
+     * @param game The game of chess
+     */
     public void loadGame(ChessGame game) {
         System.out.print("\033[2K\r");
         System.out.println(DrawChessBoard.drawBoard(LoggedInClient.getPlayerColor(), game.getBoard(), null));
@@ -147,14 +148,24 @@ public class Repl implements NotificationHandler  {
         }
     }
 
+    /**
+     * sets state
+     * @param s
+     */
     public static void setState(State s) {
         state = s;
     }
 
+    /**
+     * gets the state
+     */
     public static State getState() {
         return state;
     }
 
+    /**
+     * sets the prompt so you print help on first go around
+     */
     public static void setPrompt() {
         prompt = true;
     }
