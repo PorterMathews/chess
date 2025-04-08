@@ -1,10 +1,14 @@
 package server.websocket;
 
+import chess.ChessGame;
 import com.google.gson.Gson;
+import dataaccess.*;
 import exception.ResponseException;
+import model.*;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.*;
-import websocket.messages.Action;
+import websocket.messages.*;
+import websocket.commands.UserGameCommand;
 import websocket.messages.Notification;
 
 import java.io.IOException;
@@ -12,21 +16,22 @@ import java.io.IOException;
 
 @WebSocket
 public class WebSocketHandler {
-
+    private boolean detailedErrorMsg;
     private final ConnectionManager connections = new ConnectionManager();
+    private final AuthDAO authDAO;
+    private final GameDAO gameDAO;
+
+    public WebSocketHandler(AuthDAO authDAO, GameDAO gameDAO) {
+        this.authDAO = authDAO;
+        this.gameDAO = gameDAO;
+        detailedErrorMsg = true;
+    }
 
     @OnWebSocketMessage
     public void onMessage(Session session, String message) throws IOException {
-        Action action = new Gson().fromJson(message, Action.class);
-        switch (action.type()) {
-            case PLAYERJOIN -> playerJoin(action.userName(), action.playerColor(), session);
-            case OBSERVERJOIN -> observerJoin(action.userName(), session);
-            case MOVEMADE ->  moveMade();
-            case PLAYERLEFT -> playerLeft();
-            case OBSERVERLEFT -> observerLeft();
-            case PLAYERRESIGNED -> playerResigned();
-            case CHECK -> check();
-            case CHECKMATE -> checkMate();
+        UserGameCommand command = new Gson().fromJson(message, UserGameCommand.class);
+        switch (command.getCommandType()) {
+            case CONNECT -> connectUser(command, session);
         }
     }
 
@@ -44,6 +49,39 @@ public class WebSocketHandler {
     public void onError(Session session, Throwable error) {
         error.printStackTrace();
     }
+
+    private void connectUser(UserGameCommand command, Session session) throws IOException {
+        try {
+            AuthData auth = authDAO.getAuthDataByAuthToken(command.getAuthToken());
+            String username = auth.username();
+            String role = command.isObserver() ? "observer" : getRole(username, command.getGameID());
+
+            Connection connection = new Connection(username, command.getGameID(), role, session);
+            connections.add(connection);
+
+            debug("WSH: getting game with ID: " + gameDAO.getGameByID(command.getGameID()));
+            ChessGame game = gameDAO.getGameByID(command.getGameID()).game();
+            debug("got game " + game);
+            LoadGameMessage loadGame = new LoadGameMessage(game);
+            debug("loaded game: " + new Gson().toJson(loadGame));
+            session.getRemote().sendString(new Gson().toJson(loadGame));
+
+            Notification notification;
+            if (role.equals("observer")) {
+                notification = new Notification(Notification.Type.NOTIFICATION,
+                        username + " has joined the game as an observer");
+            } else {
+                notification = new Notification(Notification.Type.NOTIFICATION,
+                        username + " has joined the game as the " + role + " player");
+            }
+            connections.broadcast(connection, notification);
+        } catch (DataAccessException e) {
+            ErrorMessage error = new ErrorMessage("Error: " + e.getMessage());
+            session.getRemote().sendString(new Gson().toJson(error));
+        }
+    }
+
+
 
     private void playerJoin(String userName, String playerColor, Session session) throws IOException {
         Connection connection = new Connection(userName, 1, playerColor, session);
@@ -83,5 +121,26 @@ public class WebSocketHandler {
 
     private void checkMate() throws IOException {
 
+    }
+
+    private String getRole(String username, int gameID) throws DataAccessException {
+        GameData game = gameDAO.getGameByID(gameID);
+        if (game == null) throw new DataAccessException("Invalid game ID");
+        if (username == null) {
+            return "observer";
+        }
+        if (username.equals(game.whiteUsername())) {return "white";}
+        if (username.equals(game.blackUsername())) {return "black";}
+        throw new DataAccessException("unable to get role");
+    }
+
+    /**
+     * Prints only if detailed messaging is on
+     * @param input string to be printed
+     */
+    private void debug(String input) {
+        if (detailedErrorMsg) {
+            System.out.println(input);
+        }
     }
 }

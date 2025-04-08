@@ -1,5 +1,8 @@
 package server;
 
+import dataaccess.*;
+import dataaccess.SQLAuthDAO;
+import dataaccess.SQLGameDAO;
 import spark.*;
 import server.websocket.WebSocketHandler;
 
@@ -9,7 +12,9 @@ public class Server {
     private final WebSocketHandler webSocketHandler;
 
     public Server() {
-        webSocketHandler = new WebSocketHandler();
+        AuthDAO authDAO = new SQLAuthDAO();
+        GameDAO gameDAO = new SQLGameDAO();
+        webSocketHandler = new WebSocketHandler(authDAO, gameDAO);
     }
 
     public int run(int desiredPort) {
@@ -18,6 +23,7 @@ public class Server {
         Spark.staticFiles.location("/web");
 
         Spark.webSocket("/ws", webSocketHandler);
+
         Spark.delete("/db", handler::clearDatabase);
         Spark.post("/user", handler::register);
         Spark.post("/session", handler::login);

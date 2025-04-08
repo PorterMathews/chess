@@ -38,16 +38,16 @@ public class DrawChessBoard {
             moves = movesToPositions(highlightedMoves);
             myPosition = getMyPosition(highlightedMoves);
         }
-        if (playerColor.equals("white")) {
-            for (int row = 9; row >= 0; row--) {
-                for (int col = 0; col < 10; col++) {
+        if (playerColor.equals("black")) {
+            for (int row = 0; row < 10; row++) {
+                for (int col = 9; col >= 0; col--) {
                     result.append(buildingLoop(row, col, board, moves, myPosition));
                 }
                 result.append("\n");
             }
         } else {
-            for (int row = 0; row < 10; row++) {
-                for (int col = 9; col >= 0; col--) {
+            for (int row = 9; row >= 0; row--) {
+                for (int col = 0; col < 10; col++) {
                     result.append(buildingLoop(row, col, board, moves, myPosition));
                 }
                 result.append("\n");

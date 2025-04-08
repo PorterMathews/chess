@@ -9,8 +9,7 @@ import server.ServerFacade;
 import client.websocket.NotificationHandler;
 import client.websocket.WebSocketFacade;
 
-import static ui.EscapeSequences.SET_TEXT_COLOR_BLUE;
-import static ui.EscapeSequences.SET_TEXT_COLOR_LIGHT_GREY;
+import static ui.EscapeSequences.*;
 
 public class GameClient {
     private final ServerFacade server;
@@ -24,7 +23,7 @@ public class GameClient {
     private DrawChessBoard drawChessBoard;
     private ChessBoard board;
     private ChessGame chessGame;
-    private static final Map<Integer, Boolean> gameOverMap = new HashMap<>();
+    private boolean gameOver;
     Scanner scanner = new Scanner(System.in);
     private static final String IN_GAME_COLOR = SET_TEXT_COLOR_BLUE;
     private static final String GAME_COLOR = SET_TEXT_COLOR_LIGHT_GREY;
@@ -36,6 +35,7 @@ public class GameClient {
         server = new ServerFacade(serverUrl);
         this.postClient = postClient;
         errorMsg = "";
+        gameOver = false;
     }
 
 
@@ -64,6 +64,8 @@ public class GameClient {
 
     public String move(String... params) throws ResponseException, InvalidMoveException {
         checkIfGameIsOver();
+        checkObserver();
+        checkTurn();
         if (params.length == 2 && params[0].length() == 2 && params[1].length() == 2) {
             String pattern = "^[a-h][1-8]$";
             if (params[0].matches(pattern) && params[1].matches(pattern)) {
@@ -77,7 +79,14 @@ public class GameClient {
                 if (board.isValidMove(currentPosition, pieceCurrent)) {
                     throw new ResponseException(400, "Not a valid move");
                 }
-                ChessMove move = new ChessMove(currentPosition, targetPosition, null);
+                ChessMove move;
+                debug("you are moving " + pieceCurrent.getPieceType());
+                if (pieceCurrent.getPieceType().equals(ChessPiece.PieceType.PAWN) && (targetPosition.getRow() == 1 || targetPosition.getRow() == 8)) {
+                    ChessPiece.PieceType piece = askPiecePromotion();
+                    move = new ChessMove(currentPosition, targetPosition, piece);
+                } else {
+                    move = new ChessMove(currentPosition, targetPosition, null);
+                }
                 try {
                     chessGame.makeMove(move);
                 } catch (InvalidMoveException e) {
@@ -85,7 +94,20 @@ public class GameClient {
                 }
                 server.updateGame(LoggedInClient.getAuthToken(), gameID, chessGame);
                 refreshGameState();
-                return String.format(DrawChessBoard.drawBoard(LoggedInClient.getPlayerColor(), board, null)+"\nMove made!");
+                String result = "";
+                if (chessGame.isInCheck(chessGame.getTeamTurn())) {
+                    result = (getTeamTurn() + " is in check");
+                }
+                if (chessGame.isInStalemate(chessGame.getTeamTurn())) {
+                    result = ("It is a stalemate!");
+                    server.setGameOver(LoggedInClient.getAuthToken(), gameID, null, "stalemate");
+                }
+                if (chessGame.isInCheckmate(chessGame.getTeamTurn())) {
+                    result = ("CHECKMATE!\n" + getOppositeTeam() + " won");
+                    server.setGameOver(LoggedInClient.getAuthToken(), gameID, getOppositeTeam(), "checkmate");
+                }
+                return String.format(DrawChessBoard.drawBoard(LoggedInClient.getPlayerColor(), board, null)+
+                        IN_GAME_COLOR + "Move made!\n" +result + RESET_TEXT_COLOR);
             }
         }
         throw new ResponseException(400, "Expected: <current space> <target space> i.e. <b1> <c3>");
@@ -97,6 +119,7 @@ public class GameClient {
     }
 
     public String highlight(String... params) throws ResponseException {
+        checkIfGameIsOver();
         if (params.length == 1 && params[0].length() == 2) {
             String pattern = "^[a-h][1-8]$";
             if (params[0].matches(pattern)) {
@@ -127,6 +150,7 @@ public class GameClient {
 
     public String leave() throws ResponseException {
         checkIfGameIsOver();
+        checkObserver();
         try {
             server.joinGame(LoggedInClient.getAuthToken(), LoggedInClient.getPlayerColor(), gameID, true);
         } catch (ResponseException e) {
@@ -143,6 +167,7 @@ public class GameClient {
 
     public String resign() throws ResponseException {
         checkIfGameIsOver();
+        checkObserver();
         String response = "";
         while (!response.equals("yes") && !response.equals("no") &&
                 !response.equals("y") && !response.equals("n")) {
@@ -155,7 +180,11 @@ public class GameClient {
         }
 
         if (response.equals("yes") || response.equals("y")) {
-            gameOverMap.put(gameID, true);
+            if (LoggedInClient.getPlayerColor().equals("black")) {
+                server.setGameOver(LoggedInClient.getAuthToken(), gameID, "white", "resign");
+            } else {
+                server.setGameOver(LoggedInClient.getAuthToken(), gameID, "black", "resign");
+            }
             return "You have resigned. GG!";
         }
 
@@ -201,9 +230,46 @@ public class GameClient {
                 - "quit" - exits program""";
     }
 
+    private void checkTurn() throws ResponseException {
+        if (!getTeamTurn().equals(LoggedInClient.getPlayerColor())) {
+            throw new ResponseException(400, "Not your turn");
+        }
+        if (LoggedInClient.getPlayerColor().equals("observer")) {
+
+        }
+    }
+
+    private void checkObserver() throws ResponseException {
+        debug("you are playing as " + LoggedInClient.getPlayerColor());
+        if (LoggedInClient.getPlayerColor().equals("observer")) {
+            throw new ResponseException(400, "Observers can't perform this action");
+        }
+    }
+
+    private String getTeamTurn() {
+        if (chessGame.getTeamTurn().equals(ChessGame.TeamColor.WHITE)) {
+            return "white";
+        } else {
+            return "black";
+        }
+    }
+
+    private String getOppositeTeam() {
+        if (getTeamTurn().equals("white")) {
+            return "black";
+        } else {
+            return "white";
+        }
+    }
+
     private void checkIfGameIsOver() throws ResponseException {
-        if (gameOverMap.getOrDefault(gameID, false)) {
-            throw new ResponseException(400, "The game is over");
+        WinnerData winnerData = server.getGameOver(LoggedInClient.getAuthToken(), gameID);
+        if (winnerData.gameIsOver()) {
+            if (winnerData.winningColor() == null) {
+                throw new ResponseException(400, "game is over\nThe game ended in a stalemate");
+            } else {
+                throw new ResponseException(400, "game is over\n" + winnerData.winningColor() + " won by " + winnerData.winningMethod());
+            }
         }
     }
 
@@ -224,6 +290,30 @@ public class GameClient {
             }
         } catch (ResponseException e) {
             throw new RuntimeException("Could not refresh game state: " + e.getMessage());
+        }
+    }
+
+    private ChessPiece.PieceType askPiecePromotion() {
+        String response = "";
+        while (true) {
+            System.out.println(IN_GAME_COLOR + "What piece would you like to promote to? Queen, Bishop, Knight or Rook)");
+            String line = scanner.nextLine();
+            var tokens = line.split(" ");
+            if (tokens.length > 0) {
+                response = tokens[0].toLowerCase();
+            }
+            if (response.equals("queen") || response.equals("q")){
+                return ChessPiece.PieceType.QUEEN;
+            }
+            if (response.equals("bishop") || response.equals("b")){
+                return ChessPiece.PieceType.BISHOP;
+            }
+            if (response.equals("knight") || response.equals("k") || response.equals("n")) {
+                return ChessPiece.PieceType.KNIGHT;
+            }
+            if (response.equals("rook") || response.equals("r")){
+                return ChessPiece.PieceType.ROOK;
+            }
         }
     }
 

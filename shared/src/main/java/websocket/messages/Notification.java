@@ -15,7 +15,8 @@ public record Notification(Type type, String message) {
         OBSERVERLEFT,
         PLAYERRESGNED,
         CHECK,
-        CHECKMATE
+        CHECKMATE,
+        NOTIFICATION
     }
 
     public String toString() {

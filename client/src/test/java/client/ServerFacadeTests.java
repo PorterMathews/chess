@@ -201,6 +201,17 @@ public class ServerFacadeTests {
     }
 
     @Test
+    public void testUpdateWinnerStalemate() throws ResponseException {
+        int gameID = serverFacade.crateGame(existingAuth, "testGame");
+        WinnerData beforewinnerData = serverFacade.getGameOver(existingAuth, gameID);
+        serverFacade.setGameOver(existingAuth, gameID, null, "stalemate");
+        WinnerData afterWinnerData = serverFacade.getGameOver(existingAuth, gameID);
+        assertNotEquals(beforewinnerData, afterWinnerData);
+        WinnerData winnerData = new WinnerData(true, null, "stalemate");
+        assertEquals(afterWinnerData, winnerData);
+    }
+
+    @Test
     public void testUpdateWinnerBad() throws ResponseException {
         int gameID = serverFacade.crateGame(existingAuth, "testGame");
         Assertions.assertThrows(ResponseException.class, () -> {

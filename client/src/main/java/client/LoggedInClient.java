@@ -1,13 +1,17 @@
 package client;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+
+import chess.ChessGame;
 import model.*;
 import exception.ResponseException;
 import server.ServerFacade;
 import client.websocket.NotificationHandler;
 import client.websocket.WebSocketFacade;
+import websocket.commands.UserGameCommand;
 
 public class LoggedInClient {
 
@@ -15,8 +19,8 @@ public class LoggedInClient {
     private static String authToken = null;
     private final ServerFacade server;
     private final String serverUrl;
-    private static String playerColor;
-    private static final boolean detailedErrorMsg = false;
+    private static ChessGame.TeamColor playerColor;
+    private static final boolean detailedErrorMsg = true;
     private static String errorMsg;
     private static final HashMap<Integer, Integer> ID_LOOKUP = new HashMap<>();
     private final NotificationHandler notificationHandler;
@@ -26,7 +30,7 @@ public class LoggedInClient {
         this.serverUrl = serverUrl;
         this.notificationHandler = notificationHandler;
         server = new ServerFacade(serverUrl);
-        playerColor = "white";
+        playerColor = null;
         errorMsg = "";
     }
 
@@ -52,6 +56,8 @@ public class LoggedInClient {
             };
         } catch (ResponseException ex) {
             return ex.getMessage();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -141,7 +147,7 @@ public class LoggedInClient {
      * @return status of the join
      * @throws ResponseException Used for bad inputs
      */
-    public String join(String... params) throws ResponseException {
+    public String join(String... params) throws ResponseException, IOException {
         debug("joining game");
         if (params.length == 2 && Repl.getState().equals(State.LOGGEDIN) && isInteger(params[0])) {
             int game = Integer.parseInt(params[0]);
@@ -160,16 +166,20 @@ public class LoggedInClient {
                 throw new ResponseException(400, "Unable to generate list " + errorMsg);
             }
             reloadGameIDs();
+            setPlayerColor(passedPlayerColor);
             debug("looking up gameID");
             int gameID = ID_LOOKUP.get(game);
             //debug("checking if part of game: " + gameID);
             if (alreadyPartOfGame(gameList, gameID, passedPlayerColor)) {
+                if (ws != null) {
+                    ws.close();
+                }
                 ws = new WebSocketFacade(serverUrl, notificationHandler);
-                ws.playerJoinsGame(userName, params[1]);
+                ws.connectToGame(authToken, gameID, false);
                 Repl.setState(State.INGAME);
                 Repl.setPrompt();
                 GameClient.setGameID(gameID);
-                playerColor = params[1];
+                setPlayerColor(params[1]);
                 //DrawChessBoard.drawBoard(playerColor);
                 return String.format("Rejoining game " +params[0]+ " as " + params[1] + " player");
             }
@@ -184,12 +194,15 @@ public class LoggedInClient {
                     throw new ResponseException(400, "Unable to join game " + errorMsg);
                 }
             }
+            if (ws != null) {
+                ws.close();
+            }
             ws = new WebSocketFacade(serverUrl, notificationHandler);
-            ws.playerJoinsGame(params[0], params[1]);
+            ws.connectToGame(authToken, gameID, false);
             Repl.setState(State.INGAME);
             Repl.setPrompt();
             GameClient.setGameID(gameID);
-            playerColor = params[1];
+            setPlayerColor(params[1]);
             return String.format("Joined game " +params[0]+ " as " + params[1] + " player");
         }  else if (Repl.getState().equals(State.INGAME)) {
             throw new ResponseException(400, "please exit game first");
@@ -205,19 +218,26 @@ public class LoggedInClient {
      * @return the status of the observation request
      * @throws ResponseException Used for bad inputs
      */
-    public String observe(String... params) throws ResponseException {
+    public String observe(String... params) throws ResponseException, IOException {
         if (params.length == 1 && Repl.getState().equals(State.LOGGEDIN) && isInteger(params[0])) {
             reloadGameIDs();
             int game = Integer.parseInt(params[0]);
             if (game > ID_LOOKUP.size() || game < 1) {
                 throw new ResponseException(400, "Invalid game");
             }
+            int gameID = ID_LOOKUP.get(game);
+            debug("Observe game with ID: " + gameID);
+            if (ws != null) {
+                ws.close();
+            }
             ws = new WebSocketFacade(serverUrl, notificationHandler);
-            ws.observerJoinsGame(userName);
+            ws.connectToGame(authToken, gameID, true);
+            debug("Made it past the web socket stuff");
             Repl.setState(State.INGAME);
             Repl.setPrompt();
-            int gameID = ID_LOOKUP.get(game);
             GameClient.setGameID(gameID);
+            debug("Setting player to null");
+            setPlayerColor(null);
             //DrawChessBoard.drawBoard(playerColor);
             return String.format("observing game " + params[0]);
         }  else if (Repl.getState().equals(State.INGAME)) {
@@ -343,19 +363,26 @@ public class LoggedInClient {
      * @param list list of game from the DB
      * @return a formated list of game for the list method
      */
-    private String listFormater(List<GameData> list) {
+    private String listFormater(List<GameData> list) throws ResponseException {
         if (list.isEmpty()) {
             return "No Games";
         }
         StringBuilder result = new StringBuilder();
+
         int i = 0;
         ID_LOOKUP.clear();
         while (i < list.size()) {
             GameData gameData;
             gameData = list.get(i);
+            String finished = "";
+            WinnerData winnerData = server.getGameOver(authToken, gameData.gameID());
+            if (winnerData.gameIsOver()) {
+                finished = ", FINISHED";
+            }
             result.append(String.format(i+1 + ". Name: " + gameData.gameName() +
                     ", Black username: " + nullToString(gameData.blackUsername()) +
-                    ", White username: " + nullToString(gameData.whiteUsername()) + "\n"));
+                    ", White username: " + nullToString(gameData.whiteUsername()) +
+                    finished + "\n"));
             i++;
             debug("adding to ID_LOOKUP: " + i + " and " + gameData.gameID());
             ID_LOOKUP.put(i , gameData.gameID());
@@ -380,7 +407,35 @@ public class LoggedInClient {
      * @return player color for drawing board
      */
     public static String getPlayerColor() {
-        return playerColor;
+        debug("getting player by color");
+        if (playerColor == null) {
+            debug("got observer");
+            return "observer";
+        }
+        if (playerColor.equals(ChessGame.TeamColor.WHITE)) {
+            debug("got white");
+            return "white";
+        } else if (playerColor.equals(ChessGame.TeamColor.BLACK)) {
+            debug("got black");
+            return "black";
+        }
+        return "observer";
+    }
+
+
+    private void setPlayerColor(String string) {
+        debug("setting player color");
+        if (string == null) {
+            debug("set to null");
+            playerColor = null;
+        }
+        else if (string.equals("white")) {
+            debug("set to white");
+            playerColor = ChessGame.TeamColor.WHITE;
+        } else if (string.equals("black")) {
+            debug("set to black");
+            playerColor = ChessGame.TeamColor.BLACK;
+        }
     }
 
     /**

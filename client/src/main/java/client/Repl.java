@@ -125,8 +125,22 @@ public class Repl implements NotificationHandler  {
     }
 
     public void notify(Notification notification) {
+        System.out.print("\033[2K\r");
         System.out.println(GAME_COLOR + notification.message());
-        printPromptLogout();
+        switch (state) {
+            case LOGGEDOUT -> printPromptLogout();
+            case LOGGEDIN -> printPromptLogin();
+            default -> printPromptInGame();
+        }
+    }
+
+    public void loadGame(ChessGame game) {
+        System.out.println(DrawChessBoard.drawBoard(LoggedInClient.getPlayerColor(), game.getBoard(), null));
+        switch (state) {
+            case LOGGEDOUT -> printPromptLogout();
+            case LOGGEDIN -> printPromptLogin();
+            default -> printPromptInGame();
+        }
     }
 
     public static void setState(State s) {
