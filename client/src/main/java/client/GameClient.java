@@ -160,7 +160,6 @@ public class GameClient {
 
     public String leave() throws ResponseException, IOException {
         checkIfGameIsOver();
-        checkObserver();
         if (ws != null) {
             ws.close();
         }

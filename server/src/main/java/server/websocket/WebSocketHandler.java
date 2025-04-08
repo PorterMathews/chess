@@ -104,12 +104,34 @@ public class WebSocketHandler {
     private void makeMove(MakeMoveCommand command, Session session) throws IOException {
         try {
             AuthData auth = authDAO.getAuthDataByAuthToken(command.getAuthToken());
+            if (auth == null) {
+                throw new DataAccessException("Error: bad auth");
+            }
+
             String username = auth.username();
             int gameID = command.getGameID();
-            ChessMove move = command.getMove();
 
+            WinnerData winnerData = gameDAO.getWinner(gameID);
+            debug("winnerData: " + winnerData);
+            if (winnerData.gameIsOver()) {
+                ErrorMessage error = new ErrorMessage("Error: game is over");
+                session.getRemote().sendString(new Gson().toJson(error));
+                return;
+            }
+
+
+            ChessMove move = command.getMove();
+            String role = getRole(username, command.getGameID());
             GameData gameData = gameDAO.getGameByID(gameID);
             ChessGame chessGame = gameData.game();
+
+            ChessGame.TeamColor playerColor = role.equals("white") ? ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK;
+
+            if (chessGame.getTeamTurn() != playerColor) {
+                ErrorMessage error = new ErrorMessage("Error: Not your turn");
+                session.getRemote().sendString(new Gson().toJson(error));
+                return;
+            }
 
             chessGame.makeMove(move);
 
@@ -145,12 +167,27 @@ public class WebSocketHandler {
         try {
             AuthData auth = authDAO.getAuthDataByAuthToken(command.getAuthToken());
             String username = auth.username();
-            String role = getRole(username, command.getGameID());
+            String role;
+            GameData gameData = gameDAO.getGameByID(command.getGameID());
+            if (gameData == null) {
+                throw new DataAccessException("Error: bad gameID");
+            }
+
+            if (username.equals(gameData.whiteUsername())) {
+                role = "white";
+            } else if (username.equals(gameData.blackUsername())) {
+                role = "black";
+            } else {
+                role = "observer";
+            }
+            if (!role.equals("observer")){
+                gameDAO.addUserToGame(null,command.getGameID(),role);
+            }
 
             connections.remove(username, command.getGameID(), role);
 
             NotificationMessage notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, username + " has left the game");
-            connections.broadcastAll(command.getGameID(), notification);
+            connections.broadcastToOthers(command.getGameID(), username, notification);
         } catch (DataAccessException e) {
             ErrorMessage error = new ErrorMessage("Error: " + e.getMessage());
             session.getRemote().sendString(new Gson().toJson(error));
@@ -159,14 +196,23 @@ public class WebSocketHandler {
 
     public void resign(UserGameCommand command, Session session) throws IOException {
         try {
+
+            WinnerData winner = gameDAO.getWinner(command.getGameID());
+            if (winner.gameIsOver()) {
+                ErrorMessage error = new ErrorMessage("Error: game is over");
+                session.getRemote().sendString(new Gson().toJson(error));
+                return;
+            }
             AuthData auth = authDAO.getAuthDataByAuthToken(command.getAuthToken());
             String username = auth.username();
             String role = getRole(username, command.getGameID());
 
-            connections.remove(username, command.getGameID(), role);
+            WinnerData winnerData = new WinnerData(true, role , "resign");
+            gameDAO.updateWinner(command.getGameID(), winnerData);
 
             NotificationMessage notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, username + " has resigned");
             connections.broadcastAll(command.getGameID(), notification);
+            connections.remove(username, command.getGameID(), role);
         } catch (DataAccessException e) {
             ErrorMessage error = new ErrorMessage("Error: " + e.getMessage());
             session.getRemote().sendString(new Gson().toJson(error));
