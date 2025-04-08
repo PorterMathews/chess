@@ -271,7 +271,8 @@ public class DataAccessTest {
         gameService.updateGame(existingAuth, gameDataBefore.gameID(), new GameData(gameDataBefore.gameID(), null, null, null, chessGame));
         Collection<GameData> gameDataC = gameService.getGames(existingAuth);
         GameData gameDataAfter = gameDataC.iterator().next();
-        assertNotEquals(gameDataBefore.game().getBoard().getPiece(new ChessPosition(2,5)), gameDataAfter.game().getBoard().getPiece(new ChessPosition(2,5)));
+        assertNotEquals(gameDataBefore.game().getBoard().getPiece(new ChessPosition(2,5)),
+                gameDataAfter.game().getBoard().getPiece(new ChessPosition(2,5)));
     }
 
     @Test

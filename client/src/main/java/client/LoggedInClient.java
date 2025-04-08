@@ -19,7 +19,7 @@ public class LoggedInClient {
     private final ServerFacade server;
     private final String serverUrl;
     private static ChessGame.TeamColor playerColor;
-    private static final boolean detailedErrorMsg = false;
+    private static final boolean DETAILED_ERROR_MSG = false;
     private static String errorMsg;
     private static final HashMap<Integer, Integer> ID_LOOKUP = new HashMap<>();
     private final NotificationHandler notificationHandler;
@@ -71,7 +71,7 @@ public class LoggedInClient {
             try {
                 server.logout(authToken);
             } catch (ResponseException e) {
-                if (detailedErrorMsg) {
+                if (DETAILED_ERROR_MSG) {
                     errorMsg = "";
                     errorMsg = e.getMessage();
                 }
@@ -97,7 +97,7 @@ public class LoggedInClient {
             try {
                 gameID = server.crateGame(authToken, params[0]);
             } catch (ResponseException e) {
-                if (detailedErrorMsg) {
+                if (DETAILED_ERROR_MSG) {
                     errorMsg = "";
                     errorMsg = e.getMessage();
                 }
@@ -126,7 +126,7 @@ public class LoggedInClient {
             try {
                 gameList = server.listGames(authToken);
             } catch (ResponseException e) {
-                if (detailedErrorMsg) {
+                if (DETAILED_ERROR_MSG) {
                     errorMsg = "";
                     errorMsg = e.getMessage();
                 }
@@ -158,7 +158,7 @@ public class LoggedInClient {
             try {
                 gameList = server.listGames(authToken);
             } catch (ResponseException e) {
-                if (detailedErrorMsg) {
+                if (DETAILED_ERROR_MSG) {
                     errorMsg = "";
                     errorMsg = e.getMessage();
                 }
@@ -185,7 +185,7 @@ public class LoggedInClient {
                 try {
                     server.joinGame(authToken, params[1], gameID, false);
                 } catch (ResponseException e) {
-                    if (detailedErrorMsg) {
+                    if (DETAILED_ERROR_MSG) {
                         errorMsg = "";
                         errorMsg = e.getMessage();
                     }
@@ -294,7 +294,7 @@ public class LoggedInClient {
         try {
             list = server.listGames(authToken);
         } catch (ResponseException e) {
-            if (detailedErrorMsg) {
+            if (DETAILED_ERROR_MSG) {
                 errorMsg = "";
                 errorMsg = e.getMessage();
             }
@@ -476,7 +476,7 @@ public class LoggedInClient {
      * @param input string to be printed
      */
     private static void debug(String input) {
-        if (detailedErrorMsg) {
+        if (DETAILED_ERROR_MSG) {
             System.out.println(input);
         }
     }

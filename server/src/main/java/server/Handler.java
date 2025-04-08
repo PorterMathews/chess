@@ -239,7 +239,7 @@ public class Handler {
             return "";
         }
         catch(DataAccessException error) {
-            if (error.getMessage().equals("Unauthorized to Get Game")) {
+            if (error.getMessage().equals("Unauthorized to update game")) {
                 res.status(401);
             } return new Gson().toJson(Map.of("message","Error: "+ error.getMessage()));
         }
@@ -259,7 +259,7 @@ public class Handler {
             return "";
         }
         catch(DataAccessException error) {
-            if (error.getMessage().equals("Unauthorized to Get Game")) {
+            if (error.getMessage().equals("Unauthorized to update Winner")) {
                 res.status(401);
             } return new Gson().toJson(Map.of("message","Error: "+ error.getMessage()));
         }
@@ -278,7 +278,7 @@ public class Handler {
             return new Gson().toJson(winnerData);
         }
         catch(DataAccessException error) {
-            if (error.getMessage().equals("Unauthorized to Get Game")) {
+            if (error.getMessage().equals("Unauthorized to get winner")) {
                 res.status(401);
             } return new Gson().toJson(Map.of("message","Error: "+ error.getMessage()));
         }

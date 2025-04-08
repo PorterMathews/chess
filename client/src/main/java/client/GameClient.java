@@ -14,7 +14,7 @@ import static ui.EscapeSequences.*;
 public class GameClient {
     private final ServerFacade server;
     private final String serverUrl;
-    private static final boolean detailedErrorMsg = false;
+    private static final boolean DETAILED_ERROR_MSG = false;
     private static String errorMsg;
     private final NotificationHandler notificationHandler;
     private WebSocketFacade ws;
@@ -198,7 +198,7 @@ public class GameClient {
         try {
             server.joinGame(LoggedInClient.getAuthToken(), LoggedInClient.getPlayerColor(), gameID, true);
         } catch (ResponseException e) {
-            if (detailedErrorMsg) {
+            if (DETAILED_ERROR_MSG) {
                 errorMsg = "";
                 errorMsg = e.getMessage();
             }
@@ -225,8 +225,9 @@ public class GameClient {
             System.out.print(GAME_COLOR + "[Resign?] yes/no >>> ");
             String line = scanner.nextLine();
             var tokens = line.split(" ");
-            if (tokens.length > 0)
+            if (tokens.length > 0) {
                 response = tokens[0].toLowerCase();
+            }
         }
 
         if (response.equals("yes") || response.equals("y")) {
@@ -406,11 +407,11 @@ public class GameClient {
     }
 
     /**
-     * sets ID
-     * @param ID
+     * sets id
+     * @param id
      */
-    public static void setGameID(int ID) {
-        gameID = ID;
+    public static void setGameID(int id) {
+        gameID = id;
     }
 
     /**
@@ -418,7 +419,7 @@ public class GameClient {
      * @param input string to be printed
      */
     private void debug(String input) {
-        if (detailedErrorMsg) {
+        if (DETAILED_ERROR_MSG) {
             System.out.println(input);
         }
     }

@@ -95,7 +95,9 @@ public class ConnectionManager {
         List<Connection> result = new ArrayList<>();
         for (List<Connection> list : connections.values()) {
             for (Connection c : list) {
-                if (c.gameID == gameID) result.add(c);
+                if (c.gameID == gameID) {
+                    result.add(c);
+                }
             }
         }
         return result;

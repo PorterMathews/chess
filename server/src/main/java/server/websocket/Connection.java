@@ -29,7 +29,8 @@ public class Connection {
             return false;
         }
         Connection that = (Connection) o;
-        return gameID == that.gameID && Objects.equals(userName, that.userName) && Objects.equals(role, that.role) && Objects.equals(session, that.session);
+        return gameID == that.gameID && Objects.equals(userName, that.userName) &&
+                Objects.equals(role, that.role) && Objects.equals(session, that.session);
     }
 
     @Override

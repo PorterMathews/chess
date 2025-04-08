@@ -266,7 +266,9 @@ public class WebSocketHandler {
      */
     private String getColor(String username, int gameID) throws DataAccessException {
         GameData game = gameDAO.getGameByID(gameID);
-        if (game == null) throw new DataAccessException("Invalid game ID");
+        if (game == null) {
+            throw new DataAccessException("Invalid game ID");
+        }
         if (username == null) {
             return "observer";
         }
