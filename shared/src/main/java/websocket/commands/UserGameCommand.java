@@ -33,10 +33,6 @@ public class UserGameCommand {
         RESIGN
     }
 
-    public boolean isObserver() {
-        return asObserver;
-    }
-
     public CommandType getCommandType() {
         return commandType;
     }

@@ -83,18 +83,40 @@ public class ServerFacade {
         this.makeRequest("PUT", path, authToken, new JoinGameRequest(playerColor, gameID, removePlayer), null);
     }
 
+    /**
+     * used to remove user
+     * @param authToken verification
+     * @param gameID game
+     * @param updatedGame new game
+     * @throws ResponseException
+     */
     public void updateGame(String authToken, int gameID, ChessGame updatedGame) throws ResponseException {
         String path = "/game/" + gameID;
         GameData updatedGameData = new GameData(gameID, null, null, null, updatedGame);
         makeRequest("PUT", path, authToken, updatedGameData, null);
     }
 
+    /**
+     * Used once a game is finished
+     * @param authToken verification
+     * @param gameID game
+     * @param winningColor who won
+     * @param winningMethod how
+     * @throws ResponseException
+     */
     public void setGameOver(String authToken, int gameID, String winningColor, String winningMethod) throws ResponseException {
         String path = "/game/"+gameID+"/end";
         WinnerData data = new WinnerData(true, winningColor, winningMethod);
         makeRequest("PUT", path, authToken, data, null);
     }
 
+    /**
+     * Seeing if the game is over
+     * @param authToken verification
+     * @param gameID game
+     * @return winnerData
+     * @throws ResponseException
+     */
     public WinnerData getGameOver(String authToken, int gameID) throws ResponseException {
         String path = "/game/"+gameID+"/status";
         return makeRequest("GET", path, authToken, null, WinnerData.class);
