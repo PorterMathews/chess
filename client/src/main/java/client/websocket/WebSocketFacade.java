@@ -88,6 +88,15 @@ public class WebSocketFacade extends Endpoint {
         }
     }
 
+    public void leaveGame(String authToken, int gameID, boolean asObserver) throws ResponseException {
+        try {
+            UserGameCommand connectCommand = new UserGameCommand(UserGameCommand.CommandType.LEAVE, authToken, gameID, asObserver);
+            this.session.getBasicRemote().sendText(new Gson().toJson(connectCommand));
+        } catch (IOException ex) {
+            throw new ResponseException(500, ex.getMessage());
+        }
+    }
+
     /**
      * Prints only if detailed messaging is on
      * @param input string to be printed

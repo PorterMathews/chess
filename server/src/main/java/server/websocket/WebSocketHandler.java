@@ -35,6 +35,7 @@ public class WebSocketHandler {
         switch (command.getCommandType()) {
             case CONNECT -> connectUser(command, session);
             case MAKE_MOVE -> makeMove(new Gson().fromJson(message, MakeMoveCommand.class), session);
+            case LEAVE -> leave(command, session);
         }
     }
 
@@ -85,7 +86,6 @@ public class WebSocketHandler {
 
     private void makeMove(MakeMoveCommand command, Session session) throws IOException {
         try {
-            // 1. Auth + game fetch
             AuthData auth = authDAO.getAuthDataByAuthToken(command.getAuthToken());
             String username = auth.username();
             int gameID = command.getGameID();
@@ -94,25 +94,20 @@ public class WebSocketHandler {
             GameData gameData = gameDAO.getGameByID(gameID);
             ChessGame chessGame = gameData.game();
 
-            // 2. Validate and apply move
-            chessGame.makeMove(move); // This can throw InvalidMoveException
+            chessGame.makeMove(move);
 
-            // 3. Update DB
             gameDAO.updateGame(gameID, gameData);
 
-            // 4. Send LOAD_GAME to all clients
             LoadGameMessage loadGame = new LoadGameMessage(chessGame);
             for (Connection conn : connections.getConnectionsInGame(gameID)) {
                 conn.send(new Gson().toJson(loadGame));
             }
 
-            // 5. Notify others what move was made
             String moveDesc = String.format("%s moved from %s to %s", username,
                     posToString(move.getStartPosition()), posToString(move.getEndPosition()));
             NotificationMessage notifi  = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, moveDesc);
             connections.broadcastToOthers(gameID, username, notifi);
 
-            // 6. Notify all if check/stalemate/checkmate
             ChessGame.TeamColor turn = chessGame.getTeamTurn();
             if (chessGame.isInCheck(turn)) {
                 connections.broadcastAll(gameID, new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, turn + " is in check"));
@@ -126,6 +121,23 @@ public class WebSocketHandler {
 
         } catch (InvalidMoveException | DataAccessException e) {
             session.getRemote().sendString(new Gson().toJson(new ErrorMessage("Error: " + e.getMessage())));
+        }
+    }
+
+    public void leave(UserGameCommand command, Session session) throws IOException {
+        try {
+            AuthData auth = authDAO.getAuthDataByAuthToken(command.getAuthToken());
+            String username = auth.username();
+            String role = getRole(username, command.getGameID());
+
+            Connection connection = new Connection(username, command.getGameID(), role, session);
+            connections.remove(username, command.getGameID(), role);
+
+            NotificationMessage notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, username + " has left the game");
+            connections.broadcast(connection, notification);
+        } catch (DataAccessException e) {
+            ErrorMessage error = new ErrorMessage("Error: " + e.getMessage());
+            session.getRemote().sendString(new Gson().toJson(error));
         }
     }
 

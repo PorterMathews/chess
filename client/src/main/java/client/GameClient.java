@@ -158,9 +158,14 @@ public class GameClient {
         throw new ResponseException(400, "Back, back to where? Try quit instead");
     }
 
-    public String leave() throws ResponseException {
+    public String leave() throws ResponseException, IOException {
         checkIfGameIsOver();
         checkObserver();
+        if (ws != null) {
+            ws.close();
+        }
+        ws = new WebSocketFacade(serverUrl, notificationHandler);
+        ws.leaveGame(LoggedInClient.getAuthToken(), gameID, false);
         try {
             server.joinGame(LoggedInClient.getAuthToken(), LoggedInClient.getPlayerColor(), gameID, true);
         } catch (ResponseException e) {
