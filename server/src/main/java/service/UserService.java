@@ -50,7 +50,11 @@ public class UserService {
         return new AuthData(authToken, u.username());
     }
 
-
+    /**
+     * logs peeps out
+     * @param authToken
+     * @throws DataAccessException
+     */
     public void logout(String authToken) throws DataAccessException {
         if (!authDAO.authTokenExists(authToken)) {
             throw new DataAccessException("Unauthorized Token");

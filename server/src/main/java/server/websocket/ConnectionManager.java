@@ -10,8 +10,12 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class ConnectionManager {
     public final ConcurrentHashMap<String, List<Connection>> connections = new ConcurrentHashMap<>();
-    private boolean detailedErrorMsg = true;
+    private boolean detailedErrorMsg = false;
 
+    /**
+     * adds a connection
+     * @param c
+     */
     public void add(Connection c) {
         var connection = new Connection(c.userName, c.gameID, c.role, c.session);
         if (connections.containsKey(c.userName)) {
@@ -25,7 +29,13 @@ public class ConnectionManager {
         }
     }
 
-    public void remove(String userName, int gameID, String role) {
+    /**
+     * removes a connection
+     * @param userName user to remove
+     * @param gameID gameID of user
+     * @param color color of user
+     */
+    public void remove(String userName, int gameID, String color) {
         if (!connections.containsKey(userName)) {
             throw new RuntimeException("Trying to remove a connection that doesn't exist");
         }
@@ -35,7 +45,7 @@ public class ConnectionManager {
             List<Connection> connectionList = connections.get(userName);
             int i = 0;
             for (Connection connection : connectionList) {
-                if (connection.gameID == gameID && connection.role.equals(role)) {
+                if (connection.gameID == gameID && connection.role.equals(color)) {
                     connectionList.remove(i);
                     break;
                 }
@@ -44,6 +54,12 @@ public class ConnectionManager {
         }
     }
 
+    /**
+     * sends notifications to others
+     * @param excludeConnection not to your own connection
+     * @param notification what you wanna send
+     * @throws IOException
+     */
     public void broadcast(Connection excludeConnection, NotificationMessage notification) throws IOException {
         var removeList = new ArrayList<Connection>();
         for (List<Connection> connectionList : connections.values()) {
@@ -70,6 +86,11 @@ public class ConnectionManager {
         }
     }
 
+    /**
+     * gets them connections
+     * @param gameID game to get connections from
+     * @return
+     */
     public List<Connection> getConnectionsInGame(int gameID) {
         List<Connection> result = new ArrayList<>();
         for (List<Connection> list : connections.values()) {
@@ -80,28 +101,45 @@ public class ConnectionManager {
         return result;
     }
 
-    public void broadcastToOthers(int gameID, String excludeUser, NotificationMessage msg) throws IOException {
+    /**
+     * broadcasts to others
+     * @param gameID game to broadcast to
+     * @param excludeUser yourself
+     * @param notification what you wanna send
+     * @throws IOException
+     */
+    public void broadcastToOthers(int gameID, String excludeUser, NotificationMessage notification) throws IOException {
         for (List<Connection> list : connections.values()) {
             for (Connection c : list) {
-                debug(String.format("To Others: Sending to" + c.userName + ": "  + msg.getMessage()));
+                debug(String.format("To Others: Sending to" + c.userName + ": "  + notification.getMessage()));
                 if (c.gameID == gameID && !c.userName.equals(excludeUser)) {
-                    c.send(new Gson().toJson(msg));
+                    c.send(new Gson().toJson(notification));
                 }
             }
         }
     }
 
-    public void broadcastAll(int gameID, NotificationMessage msg) throws IOException {
+    /**
+     * send to everyone connected to the game
+     * @param gameID game to send things to
+     * @param notification what you wanna send
+     * @throws IOException
+     */
+    public void broadcastAll(int gameID, NotificationMessage notification) throws IOException {
         for (List<Connection> list : connections.values()) {
             for (Connection c : list) {
                 if (c.gameID == gameID) {
-                    debug(String.format("To All: Sending to" + c.userName + ": "  + msg.getMessage()));
-                    c.send(new Gson().toJson(msg));
+                    debug(String.format("To All: Sending to" + c.userName + ": "  + notification.getMessage()));
+                    c.send(new Gson().toJson(notification));
                 }
             }
         }
     }
 
+    /**
+     * little debugging
+     * @param input
+     */
     private void debug(String input) {
         if (detailedErrorMsg) {
             System.out.println(input);

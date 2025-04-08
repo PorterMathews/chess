@@ -2,11 +2,8 @@ package dataaccess;
 
 import model.AuthData;
 import model.UserData;
-
 import java.sql.SQLException;
-
 import org.mindrot.jbcrypt.BCrypt;
-
 import java.util.*;
 import java.sql.*;
 
@@ -28,7 +25,6 @@ public class SQLUserDAO implements UserDAO {
      * @return The data for the user
      */
     public void registerUser(UserData userData) throws DataAccessException {
-        //System.out.println("Register SQL");
         String hashedPassword = BCrypt.hashpw(userData.password(), BCrypt.gensalt());
         String statement = "INSERT INTO UserData (username, password, email) VALUES (?, ?, ?)";
         updateData(statement, userData.username(), hashedPassword, userData.email());
@@ -66,9 +62,7 @@ public class SQLUserDAO implements UserDAO {
      * @throws DataAccessException
      */
     public boolean checkPassword(UserData u) throws DataAccessException {
-        //System.out.println("Checking password SQL");
         var hashedPassword = readHashedPasswordFromDatabase(u.username());
-        //System.out.println("Checking passwords: \nUser: " + u.password() + "\nHashed: " + hashedPassword);
         if (hashedPassword == null) {
             return false;
         }
@@ -150,7 +144,6 @@ public class SQLUserDAO implements UserDAO {
                     else if (param == null) {ps.setNull(i + 1, NULL);}
                 }
                 ps.executeUpdate();
-                //conn.commit();
             }
         } catch (SQLException e) {
             throw new DataAccessException(String.format("unable to update database: %s, %s", statement, e.getMessage()));

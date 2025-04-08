@@ -2,7 +2,6 @@ package dataaccess;
 
 import model.GameData;
 import model.WinnerData;
-
 import java.util.Collection;
 
 public interface GameDAO {

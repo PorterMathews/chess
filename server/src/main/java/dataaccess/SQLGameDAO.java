@@ -5,7 +5,6 @@ import com.google.gson.Gson;
 import model.AuthData;
 import model.GameData;
 import model.WinnerData;
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -21,10 +20,8 @@ public class SQLGameDAO implements GameDAO {
      * @throws DataAccessException
      */
     public void clearGameData() throws DataAccessException{
-        //System.out.println("Start clearing");
         String statement = "DELETE FROM GameData";
         updateData(statement);
-        //System.out.println("Done Clearing");
     }
 
     /**
@@ -38,7 +35,6 @@ public class SQLGameDAO implements GameDAO {
 
     public void updateGame(int gameID, GameData gameData) throws DataAccessException {
         String statement = "UPDATE GameData SET chessGame = ? WHERE gameID = ?";
-        //System.out.println("🔁 Saving to DB: " + new Gson().toJson(gameData.game()));
         updateData(statement, new Gson().toJson(gameData.game()), gameID);
     }
 
@@ -59,7 +55,6 @@ public class SQLGameDAO implements GameDAO {
      * @throws DataAccessException
      */
     public void addUserToGame(String userName, int gameID, String playerColor) throws DataAccessException {
-        //System.out.println("Creating user with name: " + userName);
         GameData gameData = getGameFromDatabaseByID(gameID);
         if (gameData == null) {
             throw new DataAccessException("Game not found");
@@ -90,8 +85,6 @@ public class SQLGameDAO implements GameDAO {
      * @throws DataAccessException
      */
     public int createGame(String gameName) throws DataAccessException {
-        //System.out.println("Creating game with name: " + gameName);
-
         int gameID;
         do {
             gameID = 1000 + random.nextInt(9000);
@@ -99,9 +92,6 @@ public class SQLGameDAO implements GameDAO {
         String statement = "INSERT INTO GameData (gameID, whiteUsername, blackUsername, gameName, chessGame) VALUES (?, ?, ?, ?, ?)";
         var chessGame = new Gson().toJson(new ChessGame());
         updateData(statement, gameID, null, null, gameName, chessGame);
-
-        //System.out.println("Game successfully inserted into database!");
-
         return gameID;
     }
 
@@ -121,6 +111,12 @@ public class SQLGameDAO implements GameDAO {
         return new GameData(gameID, whiteUsername, blackUsername, gameName, chessGame);
     }
 
+    /**
+     *
+     * @param rs DB response
+     * @return The winnerData if it is there, else makes one
+     * @throws SQLException
+     */
     private WinnerData readWinner(ResultSet rs) throws SQLException {
         if (rs.next()) {
             var winnerDataJson = rs.getString("winnerData");
@@ -176,6 +172,12 @@ public class SQLGameDAO implements GameDAO {
         return null;
     }
 
+    /**
+     * gets winner data from DB
+     * @param gameID game with winner data
+     * @return WinnerData
+     * @throws DataAccessException
+     */
     private WinnerData getWinnerDataFromDatabase(int gameID) throws DataAccessException {
         try (var conn = DatabaseManager.getConnection()) {
             var statement = "SELECT winnerData FROM GameData WHERE gameID = ?";
@@ -231,7 +233,6 @@ public class SQLGameDAO implements GameDAO {
                     else if (param == null) {ps.setNull(i + 1, NULL);}
                 }
                 ps.executeUpdate();
-                //conn.commit();
             }
         } catch (SQLException e) {
             throw new DataAccessException(String.format("unable to update database: %s, %s", statement, e.getMessage()));

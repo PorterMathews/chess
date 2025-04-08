@@ -4,14 +4,12 @@ import chess.*;
 import chess.InvalidMoveException;
 import com.google.gson.Gson;
 import dataaccess.*;
-import exception.ResponseException;
 import model.*;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.*;
 import websocket.commands.MakeMoveCommand;
 import websocket.messages.*;
 import websocket.commands.UserGameCommand;
-import websocket.messages.*;
 
 import java.io.IOException;
 
@@ -26,9 +24,15 @@ public class WebSocketHandler {
     public WebSocketHandler(AuthDAO authDAO, GameDAO gameDAO) {
         this.authDAO = authDAO;
         this.gameDAO = gameDAO;
-        detailedErrorMsg = true;
+        detailedErrorMsg = false;
     }
 
+    /**
+     * sorts the incoming traffic
+     * @param session
+     * @param message what peeps got to say
+     * @throws IOException
+     */
     @OnWebSocketMessage
     public void onMessage(Session session, String message) throws IOException {
         UserGameCommand command = new Gson().fromJson(message, UserGameCommand.class);
@@ -54,6 +58,12 @@ public class WebSocketHandler {
         error.printStackTrace();
     }
 
+    /**
+     * helps send connect message to peeps when peeps connect
+     * @param command
+     * @param session
+     * @throws IOException
+     */
     private void connectUser(UserGameCommand command, Session session) throws IOException {
         try {
             AuthData auth = authDAO.getAuthDataByAuthToken(command.getAuthToken());
@@ -101,6 +111,12 @@ public class WebSocketHandler {
         }
     }
 
+    /**
+     * helps send move message to peeps
+     * @param command
+     * @param session
+     * @throws IOException
+     */
     private void makeMove(MakeMoveCommand command, Session session) throws IOException {
         try {
             AuthData auth = authDAO.getAuthDataByAuthToken(command.getAuthToken());
@@ -121,7 +137,7 @@ public class WebSocketHandler {
 
 
             ChessMove move = command.getMove();
-            String role = getRole(username, command.getGameID());
+            String role = getColor(username, command.getGameID());
             GameData gameData = gameDAO.getGameByID(gameID);
             ChessGame chessGame = gameData.game();
 
@@ -163,6 +179,12 @@ public class WebSocketHandler {
         }
     }
 
+    /**
+     * helps send leave messages to peeps
+     * @param command
+     * @param session
+     * @throws IOException
+     */
     public void leave(UserGameCommand command, Session session) throws IOException {
         try {
             AuthData auth = authDAO.getAuthDataByAuthToken(command.getAuthToken());
@@ -194,6 +216,12 @@ public class WebSocketHandler {
         }
     }
 
+    /**
+     * helps send resignation messages to peeps
+     * @param command
+     * @param session
+     * @throws IOException
+     */
     public void resign(UserGameCommand command, Session session) throws IOException {
         try {
 
@@ -205,7 +233,7 @@ public class WebSocketHandler {
             }
             AuthData auth = authDAO.getAuthDataByAuthToken(command.getAuthToken());
             String username = auth.username();
-            String role = getRole(username, command.getGameID());
+            String role = getColor(username, command.getGameID());
 
             WinnerData winnerData = new WinnerData(true, role , "resign");
             gameDAO.updateWinner(command.getGameID(), winnerData);
@@ -219,13 +247,24 @@ public class WebSocketHandler {
         }
     }
 
+    /**
+     * helps takes a position and turn it into a string
+     * @param pos
+     * @return
+     */
     private String posToString(ChessPosition pos) {
         char col = (char) ('a' + pos.getColumn() - 1);
         return "" + col + pos.getRow();
     }
 
-
-    private String getRole(String username, int gameID) throws DataAccessException {
+    /**
+     * gets that color
+     * @param username
+     * @param gameID
+     * @return
+     * @throws DataAccessException
+     */
+    private String getColor(String username, int gameID) throws DataAccessException {
         GameData game = gameDAO.getGameByID(gameID);
         if (game == null) throw new DataAccessException("Invalid game ID");
         if (username == null) {

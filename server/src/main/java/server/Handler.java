@@ -55,7 +55,6 @@ public class Handler {
      */
     public Object clearDatabase(Request req, Response res) {
         try {
-            //System.out.println("Clearing database...");
             authService.clearAuthData();
             gameService.clearGameData();
             userService.clearUserData();
@@ -101,8 +100,6 @@ public class Handler {
      */
     public Object login(Request req, Response res) {
         try {
-            //System.out.println("Start of login handler");
-            //System.out.println("userService: " + userService);
             var userData = new Gson().fromJson(req.body(), UserData.class);
             var authData = userService.login(userData);
             res.status(200);

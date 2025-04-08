@@ -14,7 +14,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 public class WebSocketFacade extends Endpoint {
-    private final boolean detailedErrorMsg = true;
+    private final boolean detailedErrorMsg = false;
     Session session;
     NotificationHandler notificationHandler;
 

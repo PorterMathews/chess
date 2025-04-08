@@ -56,14 +56,29 @@ public class MemoryGameDAO implements GameDAO {
         GAME_INFO.put(gameData.gameID(), gameData);
     }
 
+    /**
+     * not implemented for memory
+     * @param gameID
+     * @param gameData
+     */
     public void updateGame(int gameID, GameData gameData) {
 
     }
 
+    /**
+     * not implemented for memory
+     * @param gameID
+     * @param winnerData
+     */
     public void updateWinner(int gameID, WinnerData winnerData) {
 
     }
 
+    /**
+     * not implemented for memory
+     * @param gameID
+     * @return
+     */
     public WinnerData getWinner(int gameID) {
         return new WinnerData(false, null, null);
     }

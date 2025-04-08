@@ -14,15 +14,12 @@ public class AuthService {
     }
 
     public void clearDatabase() throws DataAccessException {
-        //System.out.println("Service clear 1");
         authDAO.clearAuthData();
         userDAO.clearUserData();
-        //System.out.println("Service clear GameData");
         gameDAO.clearGameData();
     }
 
     public void clearAuthData() throws DataAccessException {
-        //System.out.println("Service clear 2");
         authDAO.clearAuthData();
     }
 }

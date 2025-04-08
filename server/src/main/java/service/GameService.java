@@ -14,20 +14,16 @@ public class GameService {
         }
 
     public int createGame(String authToken, String gameName) throws DataAccessException {
-        //System.out.println("Creating game Service");
         if (!authDAO.authTokenExists(authToken)) {
             throw new DataAccessException("Unauthorized to Create Game");
         }
         if (gameName == null) {
             throw new DataAccessException("bad request");
         }
-        //System.out.println("Creating game about to go into DAO");
         return gameDAO.createGame(gameName);
     }
 
     public void joinGame(String authToken, String playerColor, int gameID, boolean removePlayer) throws DataAccessException {
-        //System.out.println("joining game Service");
-        //System.out.println("starting authToken with: " + authToken);
         if (!authDAO.authTokenExists(authToken)) {
             throw new DataAccessException("Unauthorized");
         }
@@ -52,10 +48,7 @@ public class GameService {
             } else if (lowerCasePlayerColor.equals("black") && gameData.blackUsername() != null) {
                 throw new DataAccessException("Username already taken");
             }
-            //System.out.println("passed checks in Service");
-            //System.out.println("grabbing authData with: " + authToken);
             AuthData authData = authDAO.getAuthDataByAuthToken(authToken);
-            //System.out.println("grabbed authData: " + authData);
             gameDAO.addUserToGame(authData.username(), gameID, lowerCasePlayerColor);
         } else {
             if (lowerCasePlayerColor.equals("white") && gameData.whiteUsername() == null) {
@@ -96,7 +89,6 @@ public class GameService {
     }
 
     public void clearGameData() throws DataAccessException {
-        //System.out.println("Service clear 3");
         gameDAO.clearGameData();
     }
 
